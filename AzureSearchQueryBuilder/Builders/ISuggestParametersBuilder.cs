@@ -12,15 +12,9 @@ namespace AzureSearchQueryBuilder.Builders
 
         bool UseFuzzyMatching { get; }
 
-        ISuggestParametersBuilder<TModel> OrderByAscending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
-
-        ISuggestParametersBuilder<TModel> OrderByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
+        ISuggestParametersBuilder<TModel> WithOrderBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
 
         ISuggestParametersBuilder<TModel> WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
-
-        ISuggestParametersBuilder<TModel> ThenByAscending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
-
-        ISuggestParametersBuilder<TModel> ThenByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
 
         ISuggestParametersBuilder<TModel> WithUseFuzzyMatching(bool useFuzzyMatching);
     }

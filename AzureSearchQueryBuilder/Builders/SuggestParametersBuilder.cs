@@ -39,22 +39,12 @@ namespace AzureSearchQueryBuilder.Builders
             };
         }
 
-        public ISuggestParametersBuilder<TModel> OrderByAscending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public ISuggestParametersBuilder<TModel> WithOrderBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
-            this._orderBy = new List<string>();
-
-            throw new NotImplementedException();
-        }
-
-        public ISuggestParametersBuilder<TModel> OrderByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
-        {
-            if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
-
-            this._orderBy = new List<string>();
-
-            throw new NotImplementedException();
+            this._orderBy = GetOrderBys(lambdaExpression);
+            return this;
         }
 
         public ISuggestParametersBuilder<TModel> WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
@@ -66,23 +56,9 @@ namespace AzureSearchQueryBuilder.Builders
                 this._select = new List<string>();
             }
 
-            throw new NotImplementedException();
-        }
-
-        public ISuggestParametersBuilder<TModel> ThenByAscending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
-        {
-            if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
-            if (this._orderBy == null || this._orderBy.Count < 1) throw new Exception();
-
-            throw new NotImplementedException();
-        }
-
-        public ISuggestParametersBuilder<TModel> ThenByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
-        {
-            if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
-            if (this._orderBy == null || this._orderBy.Count < 1) throw new Exception();
-
-            throw new NotImplementedException();
+            string selectField = GetPropertyName(lambdaExpression);
+            this._select.Add(selectField);
+            return this;
         }
 
         public ISuggestParametersBuilder<TModel> WithUseFuzzyMatching(bool useFuzzyMatching)

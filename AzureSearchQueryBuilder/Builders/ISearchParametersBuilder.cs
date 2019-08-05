@@ -32,13 +32,11 @@ namespace AzureSearchQueryBuilder.Builders
 
         ISearchParametersBuilder<TModel> WithIncludeTotalResultCount(bool includeTotalResultCount);
 
+        ISearchParametersBuilder<TModel> WithOrderBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
+
         ISearchParametersBuilder<TModel> WithQueryType(QueryType queryType);
 
-        ISearchParametersBuilder<TModel> OrderByAscending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
-
-        ISearchParametersBuilder<TModel> OrderByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
-
-        ISearchParametersBuilder<TModel> WithScoringParameter<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
+        ISearchParametersBuilder<TModel> WithScoringParameter<TProperty>(ScoringParameter scoringParameter);
 
         ISearchParametersBuilder<TModel> WithScoringProfile(string scoringProfile);
 
@@ -47,9 +45,5 @@ namespace AzureSearchQueryBuilder.Builders
         ISearchParametersBuilder<TModel> WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
 
         ISearchParametersBuilder<TModel> WithSkip(int? skip);
-
-        ISearchParametersBuilder<TModel> ThenByAscending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
-
-        ISearchParametersBuilder<TModel> ThenByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
     }
 }

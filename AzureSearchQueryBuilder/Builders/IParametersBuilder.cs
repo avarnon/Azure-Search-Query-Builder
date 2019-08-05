@@ -25,7 +25,7 @@ namespace AzureSearchQueryBuilder.Builders
 
         TOptions Build();
 
-        IParametersBuilder<TModel, TOptions> Where<TProperty>(BooleanLambdaDelegate<TModel> lambdaExpression);
+        IParametersBuilder<TModel, TOptions> Where<TProperty>(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression);
 
         IParametersBuilder<TModel, TOptions> WithHighlightPostTag(string highlightPostTag);
 

@@ -72,7 +72,9 @@ namespace AzureSearchQueryBuilder.Builders
                 this._facets = new List<string>();
             }
 
-            throw new NotImplementedException();
+            string facet = GetPropertyName(lambdaExpression);
+            this._facets.Add(facet);
+            return this;
         }
 
         public ISearchParametersBuilder<TModel> WithHighlightField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
@@ -84,12 +86,22 @@ namespace AzureSearchQueryBuilder.Builders
                 this._highlightFields = new List<string>();
             }
 
-            throw new NotImplementedException();
+            string highlightField = GetPropertyName(lambdaExpression);
+            this._highlightFields.Add(highlightField);
+            return this;
         }
 
         public ISearchParametersBuilder<TModel> WithIncludeTotalResultCount(bool includeTotalResultCount)
         {
             this.IncludeTotalResultCount = includeTotalResultCount;
+            return this;
+        }
+
+        public ISearchParametersBuilder<TModel> WithOrderBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        {
+            if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
+
+            this._orderBy = GetOrderBys(lambdaExpression);
             return this;
         }
 
@@ -99,34 +111,17 @@ namespace AzureSearchQueryBuilder.Builders
             return this;
         }
 
-        public ISearchParametersBuilder<TModel> OrderByAscending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public ISearchParametersBuilder<TModel> WithScoringParameter<TProperty>(ScoringParameter scoringParameter)
         {
-            if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
-
-            this._orderBy = new List<string>();
-
-            throw new NotImplementedException();
-        }
-
-        public ISearchParametersBuilder<TModel> OrderByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
-        {
-            if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
-
-            this._orderBy = new List<string>();
-
-            throw new NotImplementedException();
-        }
-
-        public ISearchParametersBuilder<TModel> WithScoringParameter<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
-        {
-            if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
+            if (scoringParameter == null) throw new ArgumentNullException(nameof(scoringParameter));
 
             if (this._scoringParameters == null)
             {
                 this._scoringParameters = new List<ScoringParameter>();
             }
 
-            throw new NotImplementedException();
+            this._scoringParameters.Add(scoringParameter);
+            return this;
         }
 
         public ISearchParametersBuilder<TModel> WithScoringProfile(string scoringProfile)
@@ -150,29 +145,15 @@ namespace AzureSearchQueryBuilder.Builders
                 this._select = new List<string>();
             }
 
-            throw new NotImplementedException();
+            string selectField = GetPropertyName(lambdaExpression);
+            this._select.Add(selectField);
+            return this;
         }
 
         public ISearchParametersBuilder<TModel> WithSkip(int? skip)
         {
             this.Skip = skip;
             return this;
-        }
-
-        public ISearchParametersBuilder<TModel> ThenByAscending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
-        {
-            if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
-            if (this._orderBy == null || this._orderBy.Count < 1) throw new Exception();
-
-            throw new NotImplementedException();
-        }
-
-        public ISearchParametersBuilder<TModel> ThenByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
-        {
-            if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
-            if (this._orderBy == null || this._orderBy.Count < 1) throw new Exception();
-
-            throw new NotImplementedException();
         }
     }
 }
