@@ -8,7 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("AzureSearchQueryBuilder.Tests")]
 namespace AzureSearchQueryBuilder.Builders
 {
     public abstract class ParametersBuilder<TModel, TParameters> : IParametersBuilder<TModel, TParameters>
@@ -28,7 +30,7 @@ namespace AzureSearchQueryBuilder.Builders
 
         public IEnumerable<string> SearchFields { get => _searchFields; }
 
-        public JsonSerializerSettings SerializerSettings { get; set;  } = new JsonSerializerSettings()
+        public JsonSerializerSettings SerializerSettings { get; set; } = new JsonSerializerSettings()
         {
             ConstructorHandling = ConstructorHandling.Default,
             ContractResolver = new ReadOnlyJsonContractResolver(),
@@ -115,7 +117,7 @@ namespace AzureSearchQueryBuilder.Builders
             return this;
         }
 
-        protected string GetFilterExpression(LambdaExpression lambdaExpression)
+        protected internal string GetFilterExpression(LambdaExpression lambdaExpression)
         {
             if (lambdaExpression == null || lambdaExpression.Body == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
@@ -255,7 +257,7 @@ namespace AzureSearchQueryBuilder.Builders
             }
         }
 
-        protected string GetPropertyName(LambdaExpression lambdaExpression)
+        protected internal string GetPropertyName(LambdaExpression lambdaExpression)
         {
             if (lambdaExpression == null || lambdaExpression.Body == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
@@ -567,7 +569,7 @@ namespace AzureSearchQueryBuilder.Builders
             if (memberExpression == null) throw new ArgumentNullException(nameof(memberExpression));
 
             PropertyOrFieldInfo parentProperty = null;
-            if (memberExpression.Expression == null)
+            if (memberExpression.Expression != null)
             {
                 switch (memberExpression.Expression.NodeType)
                 {
@@ -603,7 +605,7 @@ namespace AzureSearchQueryBuilder.Builders
             PropertyInfo propertyInfo = memberExpression.Member as PropertyInfo;
             if (propertyInfo != null)
             {
-                leafProperty = GetPropertyName(propertyInfo, parentProperty?.UseCamlCase ?? false);
+                leafProperty = GetPropertyName(propertyInfo, useCamlCase || (parentProperty?.UseCamlCase ?? false));
             }
             else
             {
