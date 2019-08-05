@@ -225,7 +225,42 @@ namespace AzureSearchQueryBuilder.Builders
             }
         }
 
-        protected static string GetFilterExpression(BinaryExpression binaryExpression)
+        protected static string GetPropertyName(LambdaExpression lambdaExpression)
+        {
+            if (lambdaExpression == null || lambdaExpression.Body == null) throw new ArgumentNullException(nameof(lambdaExpression));
+
+            switch (lambdaExpression.Body.NodeType)
+            {
+                case ExpressionType.MemberAccess:
+                    {
+                        MemberExpression memberExpression = lambdaExpression.Body as MemberExpression;
+                        if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body.GetType()}", nameof(lambdaExpression));
+
+                        return GetPropertyName(memberExpression);
+                    }
+
+                case ExpressionType.Call:
+                    {
+                        MethodCallExpression methodCallExpression = lambdaExpression.Body as MethodCallExpression;
+                        if (methodCallExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body.GetType()}", nameof(lambdaExpression));
+
+                        return GetPropertyName(methodCallExpression);
+                    }
+
+                case ExpressionType.Constant:
+                    {
+                        ConstantExpression constantExpression = lambdaExpression.Body as ConstantExpression;
+                        if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+
+                        return constantExpression.Value?.ToString();
+                    }
+
+                default:
+                    throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+            }
+        }
+
+        private static string GetFilterExpression(BinaryExpression binaryExpression)
         {
             if (binaryExpression == null || binaryExpression.Left == null || binaryExpression.Right == null) throw new ArgumentNullException(nameof(binaryExpression));
 
@@ -491,7 +526,7 @@ namespace AzureSearchQueryBuilder.Builders
             return $"{left} {op} {right}";
         }
 
-        protected static string GetFilterExpression(UnaryExpression unaryExpression)
+        private static string GetFilterExpression(UnaryExpression unaryExpression)
         {
             if (unaryExpression == null) throw new ArgumentNullException(nameof(unaryExpression));
 
@@ -526,42 +561,7 @@ namespace AzureSearchQueryBuilder.Builders
             }
         }
 
-        protected static string GetPropertyName(LambdaExpression lambdaExpression)
-        {
-            if (lambdaExpression == null || lambdaExpression.Body == null) throw new ArgumentNullException(nameof(lambdaExpression));
-
-            switch (lambdaExpression.Body.NodeType)
-            {
-                case ExpressionType.MemberAccess:
-                    {
-                        MemberExpression memberExpression = lambdaExpression.Body as MemberExpression;
-                        if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body.GetType()}", nameof(lambdaExpression));
-
-                        return GetPropertyName(memberExpression);
-                    }
-
-                case ExpressionType.Call:
-                    {
-                        MethodCallExpression methodCallExpression = lambdaExpression.Body as MethodCallExpression;
-                        if (methodCallExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body.GetType()}", nameof(lambdaExpression));
-
-                        return GetPropertyName(methodCallExpression);
-                    }
-
-                case ExpressionType.Constant:
-                    {
-                        ConstantExpression constantExpression = lambdaExpression.Body as ConstantExpression;
-                        if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
-
-                        return constantExpression.Value?.ToString();
-                    }
-
-                default:
-                    throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
-            }
-        }
-
-        protected static string GetPropertyName(MemberExpression memberExpression)
+        private static string GetPropertyName(MemberExpression memberExpression)
         {
             if (memberExpression == null) throw new ArgumentNullException(nameof(memberExpression));
 
@@ -613,7 +613,7 @@ namespace AzureSearchQueryBuilder.Builders
             }
         }
 
-        protected static string GetPropertyName(MethodCallExpression methodCallExpression)
+        private static string GetPropertyName(MethodCallExpression methodCallExpression)
         {
             if (methodCallExpression == null) throw new ArgumentNullException(nameof(methodCallExpression));
 
@@ -650,7 +650,7 @@ namespace AzureSearchQueryBuilder.Builders
             return string.Join(ODataMemberAccessOperator, tokens);
         }
 
-        protected static string GetPropertyName(PropertyInfo propertyInfo)
+        private static string GetPropertyName(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null) throw new ArgumentNullException(nameof(propertyInfo));
 
@@ -666,7 +666,7 @@ namespace AzureSearchQueryBuilder.Builders
             }
         }
 
-        protected static string GetPropertyName(FieldInfo fieldInfo)
+        private static string GetPropertyName(FieldInfo fieldInfo)
         {
             if (fieldInfo == null) throw new ArgumentNullException(nameof(fieldInfo));
 
