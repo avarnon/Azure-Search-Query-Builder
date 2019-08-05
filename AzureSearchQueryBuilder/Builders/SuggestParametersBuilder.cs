@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using AzureSearchQueryBuilder.Models;
 using Microsoft.Azure.Search.Models;
 
 namespace AzureSearchQueryBuilder.Builders
 {
     public class SuggestParametersBuilder<TModel> : ParametersBuilder<TModel, SuggestParameters>, ISuggestParametersBuilder<TModel>, IOrderedSuggestParametersBuilder<TModel>
+        where TModel : SearchModel
     {
         private IList<string> _orderBy;
         private IList<string> _select;

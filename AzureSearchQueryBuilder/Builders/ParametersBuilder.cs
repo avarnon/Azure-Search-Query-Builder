@@ -11,7 +11,7 @@ using System.Reflection;
 
 namespace AzureSearchQueryBuilder.Builders
 {
-    public abstract class ParametersBuilder<TModel, TOptions> : IParametersBuilder<TModel, TOptions>
+    public abstract class ParametersBuilder<TModel, TParameters> : IParametersBuilder<TModel, TParameters>
         where TModel : SearchModel
     {
         private const string ODataMemberAccessOperator = "/";
@@ -57,9 +57,9 @@ namespace AzureSearchQueryBuilder.Builders
 
         public int? Top { get; private set; }
 
-        public abstract TOptions Build();
+        public abstract TParameters Build();
 
-        public IParametersBuilder<TModel, TOptions> Where<TProperty>(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
+        public IParametersBuilder<TModel, TParameters> Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
@@ -76,25 +76,25 @@ namespace AzureSearchQueryBuilder.Builders
             return this;
         }
 
-        public IParametersBuilder<TModel, TOptions> WithHighlightPostTag(string highlightPostTag)
+        public IParametersBuilder<TModel, TParameters> WithHighlightPostTag(string highlightPostTag)
         {
             this.HighlightPostTag = highlightPostTag;
             return this;
         }
 
-        public IParametersBuilder<TModel, TOptions> WithHighlightPreTag(string highlightPreTag)
+        public IParametersBuilder<TModel, TParameters> WithHighlightPreTag(string highlightPreTag)
         {
             this.HighlightPreTag = highlightPreTag;
             return this;
         }
 
-        public IParametersBuilder<TModel, TOptions> WithMinimumCoverage(double? minimumCoverage)
+        public IParametersBuilder<TModel, TParameters> WithMinimumCoverage(double? minimumCoverage)
         {
             this.MinimumCoverage = minimumCoverage;
             return this;
         }
 
-        public IParametersBuilder<TModel, TOptions> WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public IParametersBuilder<TModel, TParameters> WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
@@ -109,7 +109,7 @@ namespace AzureSearchQueryBuilder.Builders
             return this;
         }
 
-        public IParametersBuilder<TModel, TOptions> WithTop(int? top)
+        public IParametersBuilder<TModel, TParameters> WithTop(int? top)
         {
             this.Top = top;
             return this;

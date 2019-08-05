@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq.Expressions;
+using AzureSearchQueryBuilder.Models;
 using Microsoft.Azure.Search.Models;
 
 namespace AzureSearchQueryBuilder.Builders
 {
     public interface IOrderlessSearchParametersBuilder<TModel> : IParametersBuilder<TModel, SearchParameters>
+        where TModel : SearchModel
     {
         IEnumerable<string> Facets { get; }
 

@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29123.88
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureSearchQueryBuilder", "AzureSearchQueryBuilder\AzureSearchQueryBuilder.csproj", "{231AC8D1-29E8-488A-A9A3-147ED8782844}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureSearchQueryBuilder", "AzureSearchQueryBuilder\AzureSearchQueryBuilder.csproj", "{231AC8D1-29E8-488A-A9A3-147ED8782844}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureSearchQueryBuilder.Tests", "AzureSearchQueryBuilder.Tests\AzureSearchQueryBuilder.Tests.csproj", "{7967F8A8-98FC-423B-AD1B-BA714CCDF9DA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{231AC8D1-29E8-488A-A9A3-147ED8782844}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{231AC8D1-29E8-488A-A9A3-147ED8782844}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{231AC8D1-29E8-488A-A9A3-147ED8782844}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7967F8A8-98FC-423B-AD1B-BA714CCDF9DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7967F8A8-98FC-423B-AD1B-BA714CCDF9DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7967F8A8-98FC-423B-AD1B-BA714CCDF9DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7967F8A8-98FC-423B-AD1B-BA714CCDF9DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

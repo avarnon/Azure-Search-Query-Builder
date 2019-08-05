@@ -8,7 +8,7 @@ namespace AzureSearchQueryBuilder.Builders
     public delegate TProperty PropertyLambdaDelegate<in TModel, out TProperty>(TModel model);
     public delegate bool BooleanLambdaDelegate<in TModel>(TModel model);
 
-    public interface IParametersBuilder<TModel, TOptions>
+    public interface IParametersBuilder<TModel, TParameters>
         where TModel : SearchModel
     {
         string Filter { get; }
@@ -25,18 +25,18 @@ namespace AzureSearchQueryBuilder.Builders
 
         int? Top { get; }
 
-        TOptions Build();
+        TParameters Build();
 
-        IParametersBuilder<TModel, TOptions> Where<TProperty>(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression);
+        IParametersBuilder<TModel, TParameters> Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression);
 
-        IParametersBuilder<TModel, TOptions> WithHighlightPostTag(string highlightPostTag);
+        IParametersBuilder<TModel, TParameters> WithHighlightPostTag(string highlightPostTag);
 
-        IParametersBuilder<TModel, TOptions> WithHighlightPreTag(string highlightPreTag);
+        IParametersBuilder<TModel, TParameters> WithHighlightPreTag(string highlightPreTag);
 
-        IParametersBuilder<TModel, TOptions> WithMinimumCoverage(double? minimumCoverage);
+        IParametersBuilder<TModel, TParameters> WithMinimumCoverage(double? minimumCoverage);
 
-        IParametersBuilder<TModel, TOptions> WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
+        IParametersBuilder<TModel, TParameters> WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
 
-        IParametersBuilder<TModel, TOptions> WithTop(int? top);
+        IParametersBuilder<TModel, TParameters> WithTop(int? top);
     }
 }

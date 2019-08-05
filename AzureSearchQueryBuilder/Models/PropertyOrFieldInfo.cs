@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AzureSearchQueryBuilder.Builders
+namespace AzureSearchQueryBuilder.Models
 {
     internal class PropertyOrFieldInfo
     {
