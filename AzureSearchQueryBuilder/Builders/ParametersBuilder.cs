@@ -1,4 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using AzureSearchQueryBuilder.Models;
+using Microsoft.Azure.Search.Models;
+using Microsoft.Rest.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +12,8 @@ using System.Reflection;
 namespace AzureSearchQueryBuilder.Builders
 {
     public abstract class ParametersBuilder<TModel, TOptions> : IParametersBuilder<TModel, TOptions>
+        where TModel : SearchModel
     {
-        public const string SearchScore = "search.score()";
         private const string ODataMemberAccessOperator = "/";
 
         private IList<string> _searchFields;
@@ -24,7 +28,32 @@ namespace AzureSearchQueryBuilder.Builders
 
         public IEnumerable<string> SearchFields { get => _searchFields; }
 
-        public JsonSerializerSettings SerializerSettings { get; } = new JsonSerializerSettings();
+        public JsonSerializerSettings SerializerSettings { get; set;  } = new JsonSerializerSettings()
+        {
+            ConstructorHandling = ConstructorHandling.Default,
+            ContractResolver = new ReadOnlyJsonContractResolver(),
+            Converters =
+            {
+                new Iso8601TimeSpanConverter(),
+            },
+            DateFormatHandling = DateFormatHandling.IsoDateFormat,
+            DateFormatString = "yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFFFFFFK",
+            DateParseHandling = DateParseHandling.DateTime,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            DefaultValueHandling = DefaultValueHandling.Include,
+            FloatFormatHandling = FloatFormatHandling.String,
+            FloatParseHandling = FloatParseHandling.Double,
+            Formatting = Formatting.Indented,
+            MetadataPropertyHandling = MetadataPropertyHandling.Default,
+            MissingMemberHandling = MissingMemberHandling.Ignore,
+            NullValueHandling = NullValueHandling.Ignore,
+            ObjectCreationHandling = ObjectCreationHandling.Auto,
+            PreserveReferencesHandling = PreserveReferencesHandling.None,
+            ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+            StringEscapeHandling = StringEscapeHandling.Default,
+            TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+            TypeNameHandling = TypeNameHandling.None,
+        };
 
         public int? Top { get; private set; }
 
@@ -86,7 +115,7 @@ namespace AzureSearchQueryBuilder.Builders
             return this;
         }
 
-        protected static string GetFilterExpression(LambdaExpression lambdaExpression)
+        protected string GetFilterExpression(LambdaExpression lambdaExpression)
         {
             if (lambdaExpression == null || lambdaExpression.Body == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
@@ -117,7 +146,8 @@ namespace AzureSearchQueryBuilder.Builders
                     {
                         MemberExpression memberExpression = lambdaExpression.Body as MemberExpression;
                         if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
-                        return GetPropertyName(memberExpression);
+
+                        return GetPropertyName(memberExpression, false);
                     }
 
                 case ExpressionType.Call:
@@ -139,7 +169,7 @@ namespace AzureSearchQueryBuilder.Builders
                                                 {
                                                     MemberExpression argumentMemberExpression = argumentExpression as MemberExpression;
                                                     if (argumentMemberExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
-                                                    parts.Add(GetPropertyName(argumentMemberExpression));
+                                                    parts.Add(GetPropertyName(argumentMemberExpression, false));
                                                 }
 
                                                 break;
@@ -187,7 +217,7 @@ namespace AzureSearchQueryBuilder.Builders
                                                 {
                                                     MemberExpression argumentMemberExpression = argumentExpression as MemberExpression;
                                                     if (argumentMemberExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
-                                                    parts.Add(GetPropertyName(argumentMemberExpression));
+                                                    parts.Add(GetPropertyName(argumentMemberExpression, false));
                                                 }
 
                                                 break;
@@ -225,44 +255,68 @@ namespace AzureSearchQueryBuilder.Builders
             }
         }
 
-        protected static string GetPropertyName(LambdaExpression lambdaExpression)
+        protected string GetPropertyName(LambdaExpression lambdaExpression)
         {
             if (lambdaExpression == null || lambdaExpression.Body == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
-            switch (lambdaExpression.Body.NodeType)
-            {
-                case ExpressionType.MemberAccess:
-                    {
-                        MemberExpression memberExpression = lambdaExpression.Body as MemberExpression;
-                        if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body.GetType()}", nameof(lambdaExpression));
-
-                        return GetPropertyName(memberExpression);
-                    }
-
-                case ExpressionType.Call:
-                    {
-                        MethodCallExpression methodCallExpression = lambdaExpression.Body as MethodCallExpression;
-                        if (methodCallExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body.GetType()}", nameof(lambdaExpression));
-
-                        return GetPropertyName(methodCallExpression);
-                    }
-
-                case ExpressionType.Constant:
-                    {
-                        ConstantExpression constantExpression = lambdaExpression.Body as ConstantExpression;
-                        if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
-
-                        return constantExpression.Value?.ToString();
-                    }
-
-                default:
-                    throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
-            }
+            return GetPropertyName(lambdaExpression, false);
         }
 
-        private static string GetFilterExpression(BinaryExpression binaryExpression)
+        private string GetFilterExpression(BinaryExpression binaryExpression)
         {
             if (binaryExpression == null || binaryExpression.Left == null || binaryExpression.Right == null) throw new ArgumentNullException(nameof(binaryExpression));
+
+            Func<UnaryExpression, object> getRightValueForConvert = null;
+            getRightValueForConvert = (UnaryExpression unaryExpression) =>
+            {
+                if (unaryExpression == null) throw new ArgumentException($"Invalid expression body type {binaryExpression.Right.GetType()}", nameof(binaryExpression));
+
+                switch (unaryExpression.Operand.NodeType)
+                {
+                    case ExpressionType.MemberAccess:
+                        {
+                            MemberExpression memberExpression = unaryExpression.Operand as MemberExpression;
+                            if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
+
+                            ConstantExpression constantExpression = memberExpression.Expression as ConstantExpression;
+                            if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
+
+                            string fieldName = memberExpression.Member.Name;
+                            object expressionValue = constantExpression.Value;
+                            FieldInfo fieldInfo = expressionValue.GetType().GetField(fieldName, BindingFlags.GetField | BindingFlags.Public | BindingFlags.Instance);
+                            if (fieldInfo == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
+
+                            return fieldInfo.GetValue(expressionValue);
+                        }
+
+                    case ExpressionType.Constant:
+                        {
+                            ConstantExpression constantExpression = unaryExpression.Operand as ConstantExpression;
+                            if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
+
+                            return constantExpression.Value;
+                        }
+
+                    case ExpressionType.Convert:
+                        {
+                            UnaryExpression innerUnaryExpression = unaryExpression.Operand as UnaryExpression;
+                            if (innerUnaryExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
+
+                            return getRightValueForConvert(innerUnaryExpression);
+                        }
+
+                    case ExpressionType.New:
+                        {
+                            NewExpression newExpression = unaryExpression.Operand as NewExpression;
+                            if (newExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
+
+                            return Activator.CreateInstance(newExpression.Type, newExpression.Arguments.Select(a => (a as ConstantExpression).Value).ToArray());
+                        }
+
+                    default:
+                        throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
+                }
+            };
 
             string op = null;
             switch (binaryExpression.NodeType)
@@ -303,7 +357,7 @@ namespace AzureSearchQueryBuilder.Builders
                         MemberExpression memberExpression = binaryExpression.Left as MemberExpression;
                         if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {binaryExpression.Left.GetType()}", nameof(binaryExpression));
 
-                        left = GetPropertyName(memberExpression);
+                        left = GetPropertyName(memberExpression, false);
                     }
 
                     break;
@@ -324,7 +378,7 @@ namespace AzureSearchQueryBuilder.Builders
                                     MemberExpression memberExpression = unaryExpression.Operand as MemberExpression;
                                     if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
 
-                                    left = GetPropertyName(memberExpression);
+                                    left = GetPropertyName(memberExpression, false);
                                 }
 
                                 break;
@@ -368,101 +422,7 @@ namespace AzureSearchQueryBuilder.Builders
                         UnaryExpression unaryExpression = binaryExpression.Right as UnaryExpression;
                         if (unaryExpression == null) throw new ArgumentException($"Invalid expression body type {binaryExpression.Right.GetType()}", nameof(binaryExpression));
 
-                        switch (unaryExpression.Operand.NodeType)
-                        {
-                            case ExpressionType.MemberAccess:
-                                {
-                                    MemberExpression memberExpression = unaryExpression.Operand as MemberExpression;
-                                    if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
-
-                                    ConstantExpression constantExpression = memberExpression.Expression as ConstantExpression;
-                                    if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
-
-                                    string fieldName = memberExpression.Member.Name;
-                                    object expressionValue = constantExpression.Value;
-                                    FieldInfo fieldInfo = expressionValue.GetType().GetField(fieldName, BindingFlags.GetField | BindingFlags.Public | BindingFlags.Instance);
-                                    if (fieldInfo == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
-
-                                    rightValue = fieldInfo.GetValue(expressionValue);
-                                }
-
-                                break;
-
-                            case ExpressionType.Constant:
-                                {
-                                    ConstantExpression constantExpression = unaryExpression.Operand as ConstantExpression;
-                                    if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
-
-                                    rightValue = constantExpression.Value;
-                                }
-
-                                break;
-
-                            case ExpressionType.Convert:
-                                {
-                                    UnaryExpression innerUnaryExpression = unaryExpression.Operand as UnaryExpression;
-                                    if (innerUnaryExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
-
-                                    switch (innerUnaryExpression.Operand.NodeType)
-                                    {
-                                        case ExpressionType.MemberAccess:
-                                            {
-                                                MemberExpression memberExpression = innerUnaryExpression.Operand as MemberExpression;
-                                                if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {innerUnaryExpression.Operand.GetType()}", nameof(binaryExpression));
-
-                                                ConstantExpression constantExpression = memberExpression.Expression as ConstantExpression;
-                                                if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {innerUnaryExpression.Operand.GetType()}", nameof(binaryExpression));
-
-                                                string fieldName = memberExpression.Member.Name;
-                                                object expressionValue = constantExpression.Value;
-                                                FieldInfo fieldInfo = expressionValue.GetType().GetField(fieldName, BindingFlags.GetField | BindingFlags.Public | BindingFlags.Instance);
-                                                if (fieldInfo == null) throw new ArgumentException($"Invalid expression body type {innerUnaryExpression.Operand.GetType()}", nameof(binaryExpression));
-
-                                                rightValue = fieldInfo.GetValue(expressionValue);
-                                            }
-
-                                            break;
-
-                                        case ExpressionType.Constant:
-                                            {
-                                                ConstantExpression constantExpression = innerUnaryExpression.Operand as ConstantExpression;
-                                                if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {innerUnaryExpression.Operand.GetType()}", nameof(binaryExpression));
-
-                                                rightValue = constantExpression.Value;
-                                            }
-
-                                            break;
-
-                                        case ExpressionType.Convert:
-                                            {
-                                                ConstantExpression constantExpression = innerUnaryExpression.Operand as ConstantExpression;
-                                                if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {innerUnaryExpression.Operand.GetType()}", nameof(binaryExpression));
-
-                                                rightValue = constantExpression.Value;
-                                            }
-
-                                            break;
-
-                                        default:
-                                            throw new ArgumentException($"Invalid expression body type {innerUnaryExpression.Operand.GetType()}", nameof(binaryExpression));
-                                    }
-                                }
-
-                                break;
-
-                            case ExpressionType.New:
-                                {
-                                    NewExpression newExpression = unaryExpression.Operand as NewExpression;
-                                    if (newExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
-
-                                    rightValue = Activator.CreateInstance(newExpression.Type, newExpression.Arguments.Select(a => (a as ConstantExpression).Value).ToArray());
-                                }
-
-                                break;
-
-                            default:
-                                throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
-                        }
+                        rightValue = getRightValueForConvert(unaryExpression);
                     }
 
                     break;
@@ -526,7 +486,7 @@ namespace AzureSearchQueryBuilder.Builders
             return $"{left} {op} {right}";
         }
 
-        private static string GetFilterExpression(UnaryExpression unaryExpression)
+        private string GetFilterExpression(UnaryExpression unaryExpression)
         {
             if (unaryExpression == null) throw new ArgumentNullException(nameof(unaryExpression));
 
@@ -538,7 +498,7 @@ namespace AzureSearchQueryBuilder.Builders
                         MemberExpression memberExpression = unaryExpression.Operand as MemberExpression;
                         if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(unaryExpression));
 
-                        operand = GetPropertyName(memberExpression);
+                        operand = GetPropertyName(memberExpression, false);
                     }
 
                     break;
@@ -561,63 +521,121 @@ namespace AzureSearchQueryBuilder.Builders
             }
         }
 
-        private static string GetPropertyName(MemberExpression memberExpression)
+        private PropertyOrFieldInfo GetPropertyName(LambdaExpression lambdaExpression, bool useCamlCase)
+        {
+            if (lambdaExpression == null || lambdaExpression.Body == null) throw new ArgumentNullException(nameof(lambdaExpression));
+
+            switch (lambdaExpression.Body.NodeType)
+            {
+                case ExpressionType.MemberAccess:
+                    {
+                        MemberExpression memberExpression = lambdaExpression.Body as MemberExpression;
+                        if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body.GetType()}", nameof(lambdaExpression));
+
+                        return GetPropertyName(memberExpression, useCamlCase);
+                    }
+
+                case ExpressionType.Call:
+                    {
+                        MethodCallExpression methodCallExpression = lambdaExpression.Body as MethodCallExpression;
+                        if (methodCallExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body.GetType()}", nameof(lambdaExpression));
+
+                        return GetPropertyName(methodCallExpression, useCamlCase);
+                    }
+
+                case ExpressionType.Constant:
+                    {
+                        ConstantExpression constantExpression = lambdaExpression.Body as ConstantExpression;
+                        if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+
+                        string value = constantExpression.Value?.ToString();
+
+                        return new PropertyOrFieldInfo(
+                            value,
+                            value,
+                            constantExpression.Type,
+                            false);
+                    }
+
+                default:
+                    throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+            }
+        }
+
+        private PropertyOrFieldInfo GetPropertyName(MemberExpression memberExpression, bool useCamlCase)
         {
             if (memberExpression == null) throw new ArgumentNullException(nameof(memberExpression));
 
-            string leafPropertyName = null;
+            PropertyOrFieldInfo parentProperty = null;
+            if (memberExpression.Expression == null)
+            {
+                switch (memberExpression.Expression.NodeType)
+                {
+                    case ExpressionType.MemberAccess:
+                        {
+                            MemberExpression childMemberExpression = memberExpression.Expression as MemberExpression;
+                            if (childMemberExpression == null) throw new ArgumentException($"Invalid expression body type {memberExpression.Expression.GetType()}", nameof(memberExpression));
+
+                            parentProperty = GetPropertyName(childMemberExpression, false);
+                        }
+
+                        break;
+
+                    case ExpressionType.Call:
+                        {
+                            MethodCallExpression methodCallExpression = memberExpression.Expression as MethodCallExpression;
+                            if (methodCallExpression == null) throw new ArgumentException($"Invalid expression body type {memberExpression.Expression.GetType()}", nameof(memberExpression));
+
+                            parentProperty = GetPropertyName(methodCallExpression, false);
+                        }
+
+                        break;
+
+                    case ExpressionType.Parameter:
+                        break;
+
+                    default:
+                        throw new ArgumentException($"Invalid expression body type {memberExpression.Expression.GetType()}", nameof(memberExpression));
+                }
+            }
+
+            PropertyOrFieldInfo leafProperty = null;
             PropertyInfo propertyInfo = memberExpression.Member as PropertyInfo;
             if (propertyInfo != null)
             {
-                leafPropertyName = GetPropertyName(propertyInfo);
+                leafProperty = GetPropertyName(propertyInfo, parentProperty?.UseCamlCase ?? false);
             }
             else
             {
                 FieldInfo fieldInfo = memberExpression.Member as FieldInfo;
                 if (fieldInfo == null) throw new ArgumentException($"Invalid expression body type {memberExpression.Member.GetType()}", nameof(memberExpression));
 
-                leafPropertyName = GetPropertyName(fieldInfo);
+                leafProperty = GetPropertyName(fieldInfo, parentProperty?.UseCamlCase ?? false);
             }
 
-            if (memberExpression.Expression == null) return leafPropertyName;
-
-            switch (memberExpression.Expression.NodeType)
+            if (parentProperty == null)
             {
-                case ExpressionType.MemberAccess:
-                    {
-                        MemberExpression childMemberExpression = memberExpression.Expression as MemberExpression;
-                        if (childMemberExpression == null) throw new ArgumentException($"Invalid expression body type {memberExpression.Expression.GetType()}", nameof(memberExpression));
-
-                        return string.Concat(
-                            GetPropertyName(childMemberExpression),
-                            ODataMemberAccessOperator,
-                            leafPropertyName);
-                    }
-
-                case ExpressionType.Call:
-                    {
-                        MethodCallExpression childMethodCallExpression = memberExpression.Expression as MethodCallExpression;
-                        if (childMethodCallExpression == null) throw new ArgumentException($"Invalid expression body type {memberExpression.Expression.GetType()}", nameof(memberExpression));
-
-                        return string.Concat(
-                            GetPropertyName(childMethodCallExpression),
-                            ODataMemberAccessOperator,
-                            leafPropertyName);
-                    }
-
-                case ExpressionType.Parameter:
-                    return leafPropertyName;
-
-                default:
-                    throw new ArgumentException($"Invalid expression body type {memberExpression.Expression.GetType()}", nameof(memberExpression));
+                return leafProperty;
+            }
+            else
+            {
+                return new PropertyOrFieldInfo(
+                    leafProperty.PropertyOrFieldName,
+                    string.Concat(
+                        parentProperty,
+                        ODataMemberAccessOperator,
+                        leafProperty),
+                    leafProperty.PropertyOrFieldType,
+                    leafProperty.UseCamlCase);
             }
         }
 
-        private static string GetPropertyName(MethodCallExpression methodCallExpression)
+        private PropertyOrFieldInfo GetPropertyName(MethodCallExpression methodCallExpression, bool useCamlCase)
         {
             if (methodCallExpression == null) throw new ArgumentNullException(nameof(methodCallExpression));
 
-            IList<string> tokens = new List<string>();
+            IList<PropertyOrFieldInfo> tokens = new List<PropertyOrFieldInfo>();
+            bool useCamlCaseLocal = useCamlCase;
             foreach (Expression argumentExpression in methodCallExpression.Arguments)
             {
                 switch (argumentExpression.NodeType)
@@ -627,7 +645,9 @@ namespace AzureSearchQueryBuilder.Builders
                             MemberExpression argumentMemberExpression = argumentExpression as MemberExpression;
                             if (argumentMemberExpression == null) throw new ArgumentException($"Invalid expression body type {argumentExpression.GetType()}", nameof(methodCallExpression));
 
-                            tokens.Add(GetPropertyName(argumentMemberExpression));
+                            PropertyOrFieldInfo newToken = GetPropertyName(argumentMemberExpression, useCamlCaseLocal);
+                            useCamlCaseLocal = useCamlCaseLocal || newToken.UseCamlCase;
+                            tokens.Add(newToken);
                         }
 
                         break;
@@ -637,7 +657,9 @@ namespace AzureSearchQueryBuilder.Builders
                             LambdaExpression argumentLambdaExpression = argumentExpression as LambdaExpression;
                             if (argumentLambdaExpression == null) throw new ArgumentException($"Invalid expression body type {argumentExpression.GetType()}", nameof(methodCallExpression));
 
-                            tokens.Add(GetPropertyName(argumentLambdaExpression));
+                            PropertyOrFieldInfo newToken = GetPropertyName(argumentLambdaExpression, useCamlCaseLocal);
+                            useCamlCaseLocal = useCamlCaseLocal || newToken.UseCamlCase;
+                            tokens.Add(newToken);
                         }
 
                         break;
@@ -647,39 +669,101 @@ namespace AzureSearchQueryBuilder.Builders
                 }
             }
 
-            return string.Join(ODataMemberAccessOperator, tokens);
+            PropertyOrFieldInfo lastPropertyInfo = tokens.LastOrDefault();
+
+            return new PropertyOrFieldInfo(
+                lastPropertyInfo?.PropertyOrFieldName,
+                string.Join(ODataMemberAccessOperator, tokens),
+                lastPropertyInfo?.PropertyOrFieldType,
+                useCamlCaseLocal || (lastPropertyInfo?.UseCamlCase ?? false));
         }
 
-        private static string GetPropertyName(PropertyInfo propertyInfo)
+        private PropertyOrFieldInfo GetPropertyName(PropertyInfo propertyInfo, bool useCamlCase)
         {
             if (propertyInfo == null) throw new ArgumentNullException(nameof(propertyInfo));
 
             JsonPropertyAttribute jsonProperty = propertyInfo.GetCustomAttribute<JsonPropertyAttribute>(true);
 
-            if (jsonProperty == null)
+            bool useCamlCaseLocal = false;
+
+            if (jsonProperty != null && string.IsNullOrWhiteSpace(jsonProperty.PropertyName) == false)
             {
-                return string.Concat(propertyInfo.Name.Substring(0, 1).ToLowerInvariant(), propertyInfo.Name.Substring(1));
+                useCamlCaseLocal = false;
+            }
+            else if (useCamlCase)
+            {
+                useCamlCaseLocal = true;
+            }
+            else if (this.SerializerSettings != null &&
+                this.SerializerSettings.ContractResolver != null &&
+                this.SerializerSettings.ContractResolver is CamelCasePropertyNamesContractResolver)
+            {
+                useCamlCaseLocal = true;
+            }
+            else if (jsonProperty != null &&
+                jsonProperty.NamingStrategyType != null &&
+                jsonProperty.NamingStrategyType == typeof(CamelCaseNamingStrategy))
+            {
+                useCamlCaseLocal = true;
+            }
+            else if (propertyInfo.DeclaringType.GetCustomAttributes<SerializePropertyNamesAsCamelCaseAttribute>().Any())
+            {
+                useCamlCaseLocal = true;
             }
             else
             {
-                return jsonProperty.PropertyName;
+                useCamlCaseLocal = false;
             }
+
+            return new PropertyOrFieldInfo(
+                propertyInfo.Name,
+                jsonProperty?.PropertyName,
+                propertyInfo.PropertyType,
+                useCamlCaseLocal);
         }
 
-        private static string GetPropertyName(FieldInfo fieldInfo)
+        private PropertyOrFieldInfo GetPropertyName(FieldInfo fieldInfo, bool useCamlCase)
         {
             if (fieldInfo == null) throw new ArgumentNullException(nameof(fieldInfo));
 
             JsonPropertyAttribute jsonProperty = fieldInfo.GetCustomAttribute<JsonPropertyAttribute>(true);
 
-            if (jsonProperty == null)
+            bool useCamlCaseLocal = false;
+
+            if (jsonProperty != null && string.IsNullOrWhiteSpace(jsonProperty.PropertyName) == false)
             {
-                return string.Concat(fieldInfo.Name.Substring(0, 1).ToLowerInvariant(), fieldInfo.Name.Substring(1));
+                useCamlCaseLocal = false;
+            }
+            else if (useCamlCase)
+            {
+                useCamlCaseLocal = true;
+            }
+            else if (this.SerializerSettings != null &&
+                this.SerializerSettings.ContractResolver != null &&
+                this.SerializerSettings.ContractResolver is CamelCasePropertyNamesContractResolver)
+            {
+                useCamlCaseLocal = true;
+            }
+            else if (jsonProperty != null &&
+                jsonProperty.NamingStrategyType != null &&
+                jsonProperty.NamingStrategyType == typeof(CamelCaseNamingStrategy))
+            {
+                useCamlCaseLocal = true;
+            }
+            else if (fieldInfo.DeclaringType.GetCustomAttributes<SerializePropertyNamesAsCamelCaseAttribute>().Any())
+            {
+                useCamlCaseLocal = true;
             }
             else
             {
-                return jsonProperty.PropertyName;
+                useCamlCaseLocal = false;
             }
+
+            return new PropertyOrFieldInfo(
+                fieldInfo.Name,
+                jsonProperty?.PropertyName,
+                fieldInfo.FieldType,
+                useCamlCaseLocal);
         }
     }
 }
