@@ -6,7 +6,7 @@ using Microsoft.Azure.Search.Models;
 
 namespace AzureSearchQueryBuilder.Builders
 {
-    public class SuggestParametersBuilder<TModel> : ParametersBuilder<TModel, SuggestParameters>, ISuggestParametersBuilder<TModel>
+    public class SuggestParametersBuilder<TModel> : ParametersBuilder<TModel, SuggestParameters>, ISuggestParametersBuilder<TModel>, IOrderedSuggestParametersBuilder<TModel>
     {
         private IList<string> _orderBy;
         private IList<string> _select;
@@ -39,11 +39,25 @@ namespace AzureSearchQueryBuilder.Builders
             };
         }
 
-        public ISuggestParametersBuilder<TModel> WithOrderBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public IOrderedSuggestParametersBuilder<TModel> WithOrderBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
-            this._orderBy = GetOrderBys(lambdaExpression);
+            this._orderBy = new List<string>();
+
+            string orderBy = GetPropertyName(lambdaExpression);
+            this._orderBy.Add($"{orderBy} asc");
+            return this;
+        }
+
+        public IOrderedSuggestParametersBuilder<TModel> WithOrderByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        {
+            if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
+
+            this._orderBy = new List<string>();
+
+            string orderBy = GetPropertyName(lambdaExpression);
+            this._orderBy.Add($"{orderBy} desc");
             return this;
         }
 
@@ -64,6 +78,26 @@ namespace AzureSearchQueryBuilder.Builders
         public ISuggestParametersBuilder<TModel> WithUseFuzzyMatching(bool useFuzzyMatching)
         {
             this.UseFuzzyMatching = useFuzzyMatching;
+            return this;
+        }
+
+        public IOrderedSuggestParametersBuilder<TModel> WithThenBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        {
+            if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
+            if (this._orderBy == null || this._orderBy.Count < 1) throw new Exception();
+
+            string orderBy = GetPropertyName(lambdaExpression);
+            this._orderBy.Add($"{orderBy} asc");
+            return this;
+        }
+
+        public IOrderedSuggestParametersBuilder<TModel> WithThenByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        {
+            if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
+            if (this._orderBy == null || this._orderBy.Count < 1) throw new Exception();
+
+            string orderBy = GetPropertyName(lambdaExpression);
+            this._orderBy.Add($"{orderBy} desc");
             return this;
         }
     }

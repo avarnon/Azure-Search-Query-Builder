@@ -1,49 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq.Expressions;
-using Microsoft.Azure.Search.Models;
 
 namespace AzureSearchQueryBuilder.Builders
 {
-    public interface ISearchParametersBuilder<TModel> : IParametersBuilder<TModel, SearchParameters>
+    public interface ISearchParametersBuilder<TModel> : IOrderlessSearchParametersBuilder<TModel>
     {
-        IEnumerable<string> Facets { get; }
-
-        IEnumerable<string> HighlightFields { get; }
-
-        bool IncludeTotalResultCount { get; }
-
         IEnumerable<string> OrderBy { get; }
 
-        QueryType QueryType { get; }
+        IOrderedSearchParametersBuilder<TModel> WithOrderBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
 
-        IEnumerable<ScoringParameter> ScoringParameters { get; }
-
-        string ScoringProfile { get; }
-
-        SearchMode SearchMode { get; }
-
-        IEnumerable<string> Select { get; }
-
-        int? Skip { get; }
-
-        ISearchParametersBuilder<TModel> WithFacet<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
-
-        ISearchParametersBuilder<TModel> WithHighlightField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
-
-        ISearchParametersBuilder<TModel> WithIncludeTotalResultCount(bool includeTotalResultCount);
-
-        ISearchParametersBuilder<TModel> WithOrderBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
-
-        ISearchParametersBuilder<TModel> WithQueryType(QueryType queryType);
-
-        ISearchParametersBuilder<TModel> WithScoringParameter<TProperty>(ScoringParameter scoringParameter);
-
-        ISearchParametersBuilder<TModel> WithScoringProfile(string scoringProfile);
-
-        ISearchParametersBuilder<TModel> WithSearchMode(SearchMode searchMode);
-
-        ISearchParametersBuilder<TModel> WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
-
-        ISearchParametersBuilder<TModel> WithSkip(int? skip);
+        IOrderedSearchParametersBuilder<TModel> WithOrderByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
     }
 }
