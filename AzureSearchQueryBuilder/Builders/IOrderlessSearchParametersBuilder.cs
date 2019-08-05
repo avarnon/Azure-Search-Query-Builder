@@ -34,7 +34,7 @@ namespace AzureSearchQueryBuilder.Builders
 
         ISearchParametersBuilder<TModel> WithQueryType(QueryType queryType);
 
-        ISearchParametersBuilder<TModel> WithScoringParameter<TProperty>(ScoringParameter scoringParameter);
+        ISearchParametersBuilder<TModel> WithScoringParameter(ScoringParameter scoringParameter);
 
         ISearchParametersBuilder<TModel> WithScoringProfile(string scoringProfile);
 

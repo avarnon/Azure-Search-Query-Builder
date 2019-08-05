@@ -127,7 +127,7 @@ namespace AzureSearchQueryBuilder.Builders
             return this;
         }
 
-        public ISearchParametersBuilder<TModel> WithScoringParameter<TProperty>(ScoringParameter scoringParameter)
+        public ISearchParametersBuilder<TModel> WithScoringParameter(ScoringParameter scoringParameter)
         {
             if (scoringParameter == null) throw new ArgumentNullException(nameof(scoringParameter));
 
