@@ -10,8 +10,17 @@ using Newtonsoft.Json.Serialization;
 
 namespace AzureSearchQueryBuilder.Helpers
 {
+    /// <summary>
+    /// A helper class for building OData property names.
+    /// </summary>
     internal static class PropertyNameUtility
     {
+        /// <summary>
+        /// Get the OData property name.
+        /// </summary>
+        /// <param name="lambdaExpression">The expression from which to parse the OData property name.</param>
+        /// <param name="useCamlCase">Is the property name expected to be in CAML case?</param>
+        /// <returns>the OData property name.</returns>
         public static PropertyOrFieldInfo GetPropertyName(LambdaExpression lambdaExpression, bool useCamlCase)
         {
             if (lambdaExpression == null || lambdaExpression.Body == null) throw new ArgumentNullException(nameof(lambdaExpression));
@@ -53,6 +62,12 @@ namespace AzureSearchQueryBuilder.Helpers
             }
         }
 
+        /// <summary>
+        /// Get the OData property name.
+        /// </summary>
+        /// <param name="memberExpression">The expression from which to parse the OData property name.</param>
+        /// <param name="useCamlCase">Is the property name expected to be in CAML case?</param>
+        /// <returns>the OData property name.</returns>
         public static PropertyOrFieldInfo GetPropertyName(MemberExpression memberExpression, bool useCamlCase)
         {
             if (memberExpression == null) throw new ArgumentNullException(nameof(memberExpression));
@@ -121,6 +136,12 @@ namespace AzureSearchQueryBuilder.Helpers
             }
         }
 
+        /// <summary>
+        /// Get the OData property name.
+        /// </summary>
+        /// <param name="methodCallExpression">The expression from which to parse the OData property name.</param>
+        /// <param name="useCamlCase">Is the property name expected to be in CAML case?</param>
+        /// <returns>the OData property name.</returns>
         public static PropertyOrFieldInfo GetPropertyName(MethodCallExpression methodCallExpression, bool useCamlCase)
         {
             if (methodCallExpression == null) throw new ArgumentNullException(nameof(methodCallExpression));
@@ -169,6 +190,12 @@ namespace AzureSearchQueryBuilder.Helpers
                 useCamlCaseLocal || (lastPropertyInfo?.UseCamlCase ?? false));
         }
 
+        /// <summary>
+        /// Get the OData property name.
+        /// </summary>
+        /// <param name="propertyInfo">The <see cref="PropertyInfo"/> for the property.</param>
+        /// <param name="useCamlCase">Is the property name expected to be in CAML case?</param>
+        /// <returns>the OData property name.</returns>
         public static PropertyOrFieldInfo GetPropertyName(PropertyInfo propertyInfo, bool useCamlCase)
         {
             if (propertyInfo == null) throw new ArgumentNullException(nameof(propertyInfo));
@@ -207,6 +234,12 @@ namespace AzureSearchQueryBuilder.Helpers
                 useCamlCaseLocal);
         }
 
+        /// <summary>
+        /// Get the OData property name.
+        /// </summary>
+        /// <param name="fieldInfo">The <see cref="FieldInfo"/> for the property.</param>
+        /// <param name="useCamlCase">Is the property name expected to be in CAML case?</param>
+        /// <returns>the OData property name.</returns>
         public static PropertyOrFieldInfo GetFieldName(FieldInfo fieldInfo, bool useCamlCase)
         {
             if (fieldInfo == null) throw new ArgumentNullException(nameof(fieldInfo));

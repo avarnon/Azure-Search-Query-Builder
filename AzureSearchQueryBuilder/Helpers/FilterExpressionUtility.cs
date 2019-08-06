@@ -6,8 +6,16 @@ using System.Reflection;
 
 namespace AzureSearchQueryBuilder.Helpers
 {
+    /// <summary>
+    /// A helper class for building OData filter expressions.
+    /// </summary>
     internal static class FilterExpressionUtility
     {
+        /// <summary>
+        /// Get the OData filter expression.
+        /// </summary>
+        /// <param name="lambdaExpression">The expression from which to parse the OData filter.</param>
+        /// <returns>the OData filter.</returns>
         public static string GetFilterExpression(LambdaExpression lambdaExpression)
         {
             if (lambdaExpression == null || lambdaExpression.Body == null) throw new ArgumentNullException(nameof(lambdaExpression));
@@ -148,6 +156,11 @@ namespace AzureSearchQueryBuilder.Helpers
             }
         }
 
+        /// <summary>
+        /// Get the OData filter expression.
+        /// </summary>
+        /// <param name="binaryExpression">The expression from which to parse the OData filter.</param>
+        /// <returns>the OData filter.</returns>
         public static string GetFilterExpression(BinaryExpression binaryExpression)
         {
             if (binaryExpression == null || binaryExpression.Left == null || binaryExpression.Right == null) throw new ArgumentNullException(nameof(binaryExpression));
@@ -320,6 +333,11 @@ namespace AzureSearchQueryBuilder.Helpers
             return $"{left} {op} {right}";
         }
 
+        /// <summary>
+        /// Get the OData filter expression.
+        /// </summary>
+        /// <param name="unaryExpression">The expression from which to parse the OData filter.</param>
+        /// <returns>the OData filter.</returns>
         public static string GetFilterExpression(UnaryExpression unaryExpression)
         {
             if (unaryExpression == null) throw new ArgumentNullException(nameof(unaryExpression));
@@ -355,6 +373,11 @@ namespace AzureSearchQueryBuilder.Helpers
             }
         }
 
+        /// <summary>
+        /// Get the right value from a binary expression whose right expression is a convert expression.
+        /// </summary>
+        /// <param name="unaryExpression">The expression from which to parse the value</param>
+        /// <returns>the value.</returns>
         private static object GetFilterValueForBinaryRightConvert(UnaryExpression unaryExpression)
         {
             if (unaryExpression == null) throw new ArgumentNullException(nameof(unaryExpression));
