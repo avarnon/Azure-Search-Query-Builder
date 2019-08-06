@@ -6,16 +6,16 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace AzureSearchQueryBuilder.Tests.Builders
 {
     [TestClass]
-    public class SuggestParametersBuilderTests : ParametersBuilderTests<TestModel, SuggestParameters>
+    public class SuggestParametersBuilderTests : ParametersBuilderTests<SuggestParameters>
     {
         [TestMethod]
         public void SearchPropertyNameUtility_OrderBy()
         {
-            ISuggestParametersBuilder<TestModel> suggestParametersBuilder = SuggestParametersBuilder<TestModel>.Create();
+            ISuggestParametersBuilder<Model> suggestParametersBuilder = SuggestParametersBuilder<Model>.Create();
 
             Assert.IsNull(suggestParametersBuilder.OrderBy);
 
-            suggestParametersBuilder.WithOrderBy(_ => _.SearchScore).WithThenByDescending(_ => _.SearchScore);
+            suggestParametersBuilder.WithOrderBy(_ => Constants.SearchScore).WithThenByDescending(_ => Constants.SearchScore);
 
             Assert.IsNotNull(suggestParametersBuilder.OrderBy);
             Assert.AreEqual(2, suggestParametersBuilder.OrderBy.Count());
@@ -29,7 +29,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
             Assert.AreEqual("search.score() asc", parameters.OrderBy.ElementAtOrDefault(0));
             Assert.AreEqual("search.score() desc", parameters.OrderBy.ElementAtOrDefault(1));
 
-            suggestParametersBuilder.WithOrderByDescending(_ => _.SearchScore).WithThenBy(_ => _.SearchScore);
+            suggestParametersBuilder.WithOrderByDescending(_ => Constants.SearchScore).WithThenBy(_ => Constants.SearchScore);
 
             Assert.IsNotNull(suggestParametersBuilder.OrderBy);
             Assert.AreEqual(2, suggestParametersBuilder.OrderBy.Count());
@@ -47,11 +47,11 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void SearchPropertyNameUtility_Select()
         {
-            ISuggestParametersBuilder<TestModel> suggestParametersBuilder = SuggestParametersBuilder<TestModel>.Create();
+            ISuggestParametersBuilder<Model> suggestParametersBuilder = SuggestParametersBuilder<Model>.Create();
 
             Assert.IsNull(suggestParametersBuilder.Select);
 
-            suggestParametersBuilder.WithSelect(_ => _.SearchScore);
+            suggestParametersBuilder.WithSelect(_ => Constants.SearchScore);
 
             Assert.IsNotNull(suggestParametersBuilder.Select);
             Assert.AreEqual(1, suggestParametersBuilder.Select.Count());
@@ -67,7 +67,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void SuggestPropertyNameUtility_UseFuzzyMatching()
         {
-            ISuggestParametersBuilder<TestModel> suggestParametersBuilder = SuggestParametersBuilder<TestModel>.Create();
+            ISuggestParametersBuilder<Model> suggestParametersBuilder = SuggestParametersBuilder<Model>.Create();
 
             Assert.IsFalse(suggestParametersBuilder.UseFuzzyMatching);
 
@@ -81,9 +81,9 @@ namespace AzureSearchQueryBuilder.Tests.Builders
             Assert.IsTrue(parameters.UseFuzzyMatching);
         }
 
-        protected override IParametersBuilder<TestModel, SuggestParameters> ConstructBuilder()
+        protected override IParametersBuilder<Model, SuggestParameters> ConstructBuilder()
         {
-            return SuggestParametersBuilder<TestModel>.Create();
+            return SuggestParametersBuilder<Model>.Create();
         }
     }
 }

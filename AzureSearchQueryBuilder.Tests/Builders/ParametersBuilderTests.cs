@@ -12,37 +12,41 @@ using Newtonsoft.Json;
 
 namespace AzureSearchQueryBuilder.Tests.Builders
 {
+    public class Model
+    {
+        public string Foo { get; set; }
+    }
+
     [TestClass]
-    public abstract class ParametersBuilderTests<TModel, TParameters>
-        where TModel : SearchModel
+    public abstract class ParametersBuilderTests<TParameters>
     {
         [TestMethod]
         public void PropertyNameUtility_Filter()
         {
-            IParametersBuilder<TModel, TParameters> parametersBuilder = this.ConstructBuilder();
+            IParametersBuilder<Model, TParameters> parametersBuilder = this.ConstructBuilder();
 
             Assert.IsNull(parametersBuilder.Filter);
 
-            parametersBuilder.Where(_ => _.SearchScore == 0.0);
+            parametersBuilder.Where(_ => _.Foo == "test");
 
             Assert.IsNotNull(parametersBuilder.Filter);
-            Assert.AreEqual("search.score() eq 0", parametersBuilder.Filter);
+            Assert.AreEqual("Foo eq 'test'", parametersBuilder.Filter);
 
             TParameters parameters = parametersBuilder.Build();
             Assert.IsNotNull(parameters);
 
-            PropertyInfo filterPropertyInfo = parameters.GetType().GetProperty(nameof(IParametersBuilder<TModel, TParameters>.Filter));
+            PropertyInfo filterPropertyInfo = parameters.GetType().GetProperty(nameof(IParametersBuilder<Model, TParameters>.Filter));
             Assert.IsNotNull(filterPropertyInfo);
 
             string filter = filterPropertyInfo.GetValue(parameters) as string;
             Assert.IsNotNull(filter);
-            Assert.AreEqual("search.score() eq 0", filter);
+            Assert.AreEqual("Foo eq 'test'", filter);
         }
 
         [TestMethod]
         public void PropertyNameUtility_HighlightPostTag()
         {
-            IParametersBuilder<TModel, TParameters> parametersBuilder = this.ConstructBuilder();
+            IParametersBuilder<Model, TParameters> parametersBuilder = this.ConstructBuilder();
 
             Assert.IsNull(parametersBuilder.HighlightPostTag);
 
@@ -54,7 +58,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
             TParameters parameters = parametersBuilder.Build();
             Assert.IsNotNull(parameters);
 
-            PropertyInfo highlightPostTagPropertyInfo = parameters.GetType().GetProperty(nameof(IParametersBuilder<TModel, TParameters>.HighlightPostTag));
+            PropertyInfo highlightPostTagPropertyInfo = parameters.GetType().GetProperty(nameof(IParametersBuilder<Model, TParameters>.HighlightPostTag));
             Assert.IsNotNull(highlightPostTagPropertyInfo);
 
             string highlightPostTag = highlightPostTagPropertyInfo.GetValue(parameters) as string;
@@ -65,7 +69,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void PropertyNameUtility_HighlightPreTag()
         {
-            IParametersBuilder<TModel, TParameters> parametersBuilder = this.ConstructBuilder();
+            IParametersBuilder<Model, TParameters> parametersBuilder = this.ConstructBuilder();
 
             Assert.IsNull(parametersBuilder.HighlightPreTag);
 
@@ -77,7 +81,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
             TParameters parameters = parametersBuilder.Build();
             Assert.IsNotNull(parameters);
 
-            PropertyInfo highlightPreTagPropertyInfo = parameters.GetType().GetProperty(nameof(IParametersBuilder<TModel, TParameters>.HighlightPreTag));
+            PropertyInfo highlightPreTagPropertyInfo = parameters.GetType().GetProperty(nameof(IParametersBuilder<Model, TParameters>.HighlightPreTag));
             Assert.IsNotNull(highlightPreTagPropertyInfo);
 
             string highlightPreTag = highlightPreTagPropertyInfo.GetValue(parameters) as string;
@@ -88,7 +92,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void PropertyNameUtility_MinimumCoverage()
         {
-            IParametersBuilder<TModel, TParameters> parametersBuilder = this.ConstructBuilder();
+            IParametersBuilder<Model, TParameters> parametersBuilder = this.ConstructBuilder();
 
             Assert.IsNull(parametersBuilder.MinimumCoverage);
 
@@ -100,7 +104,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
             TParameters parameters = parametersBuilder.Build();
             Assert.IsNotNull(parameters);
 
-            PropertyInfo minimumCoveragePropertyInfo = parameters.GetType().GetProperty(nameof(IParametersBuilder<TModel, TParameters>.MinimumCoverage));
+            PropertyInfo minimumCoveragePropertyInfo = parameters.GetType().GetProperty(nameof(IParametersBuilder<Model, TParameters>.MinimumCoverage));
             Assert.IsNotNull(minimumCoveragePropertyInfo);
 
             double? minimumCoverage = minimumCoveragePropertyInfo.GetValue(parameters) as double?;
@@ -111,11 +115,11 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void PropertyNameUtility_SearchFields()
         {
-            IParametersBuilder<TModel, TParameters> parametersBuilder = this.ConstructBuilder();
+            IParametersBuilder<Model, TParameters> parametersBuilder = this.ConstructBuilder();
 
             Assert.IsNull(parametersBuilder.SearchFields);
 
-            parametersBuilder.WithSearchField(_ => _.SearchScore);
+            parametersBuilder.WithSearchField(_ => Constants.SearchScore);
 
             try
             {
@@ -139,7 +143,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
             TParameters parameters = parametersBuilder.Build();
             Assert.IsNotNull(parameters);
 
-            PropertyInfo searchFieldsPropertyInfo = parameters.GetType().GetProperty(nameof(IParametersBuilder<TModel, TParameters>.SearchFields));
+            PropertyInfo searchFieldsPropertyInfo = parameters.GetType().GetProperty(nameof(IParametersBuilder<Model, TParameters>.SearchFields));
             Assert.IsNotNull(searchFieldsPropertyInfo);
 
             IEnumerable<string> searchFields = searchFieldsPropertyInfo.GetValue(parameters) as IEnumerable<string>;
@@ -166,7 +170,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void PropertyNameUtility_SerializerSettings()
         {
-            IParametersBuilder<TModel, TParameters> parametersBuilder = this.ConstructBuilder();
+            IParametersBuilder<Model, TParameters> parametersBuilder = this.ConstructBuilder();
 
             Assert.IsNotNull(parametersBuilder.SerializerSettings);
         }
@@ -174,7 +178,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void PropertyNameUtility_Top()
         {
-            IParametersBuilder<TModel, TParameters> parametersBuilder = this.ConstructBuilder();
+            IParametersBuilder<Model, TParameters> parametersBuilder = this.ConstructBuilder();
 
             Assert.IsNull(parametersBuilder.Top);
 
@@ -186,7 +190,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
             TParameters parameters = parametersBuilder.Build();
             Assert.IsNotNull(parameters);
 
-            PropertyInfo topInfo = parameters.GetType().GetProperty(nameof(IParametersBuilder<TModel, TParameters>.Top));
+            PropertyInfo topInfo = parameters.GetType().GetProperty(nameof(IParametersBuilder<Model, TParameters>.Top));
             Assert.IsNotNull(topInfo);
 
             int? top = topInfo.GetValue(parameters) as int?;
@@ -194,6 +198,6 @@ namespace AzureSearchQueryBuilder.Tests.Builders
             Assert.AreEqual(1, top);
         }
 
-        protected abstract IParametersBuilder<TModel, TParameters> ConstructBuilder();
+        protected abstract IParametersBuilder<Model, TParameters> ConstructBuilder();
     }
 }

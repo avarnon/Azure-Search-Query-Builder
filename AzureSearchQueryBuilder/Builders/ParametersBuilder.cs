@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using AzureSearchQueryBuilder.Helpers;
-using AzureSearchQueryBuilder.Models;
 using Microsoft.Rest.Serialization;
 using Newtonsoft.Json;
 
@@ -13,7 +10,6 @@ using Newtonsoft.Json;
 namespace AzureSearchQueryBuilder.Builders
 {
     public abstract class ParametersBuilder<TModel, TParameters> : IParametersBuilder<TModel, TParameters>
-        where TModel : SearchModel
     {
         private IList<string> _searchFields;
 

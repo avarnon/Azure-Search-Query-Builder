@@ -87,7 +87,7 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
         }
 
         [SerializePropertyNamesAsCamelCase]
-        private class Level1 : SearchModel
+        private class Level1
         {
             public string Id { get; set; }
 

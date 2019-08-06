@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using AzureSearchQueryBuilder.Helpers;
-using AzureSearchQueryBuilder.Models;
 using Microsoft.Azure.Search.Models;
 
 namespace AzureSearchQueryBuilder.Builders
 {
     public class SearchParametersBuilder<TModel> : ParametersBuilder<TModel, SearchParameters>, ISearchParametersBuilder<TModel>, IOrderedSearchParametersBuilder<TModel>
-        where TModel : SearchModel
     {
         private IList<string> _facets;
         private IList<string> _highlightFields;

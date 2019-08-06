@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq.Expressions;
-using AzureSearchQueryBuilder.Models;
 using Newtonsoft.Json;
 
 namespace AzureSearchQueryBuilder.Builders
@@ -9,7 +8,6 @@ namespace AzureSearchQueryBuilder.Builders
     public delegate bool BooleanLambdaDelegate<in TModel>(TModel model);
 
     public interface IParametersBuilder<TModel, TParameters>
-        where TModel : SearchModel
     {
         string Filter { get; }
 

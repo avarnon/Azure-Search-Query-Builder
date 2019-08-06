@@ -6,16 +6,16 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace AzureSearchQueryBuilder.Tests.Builders
 {
     [TestClass]
-    public class SearchParametersBuilderTests : ParametersBuilderTests<TestModel, SearchParameters>
+    public class SearchParametersBuilderTests : ParametersBuilderTests< SearchParameters>
     {
         [TestMethod]
         public void SearchPropertyNameUtility_Facets()
         {
-            ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
+            ISearchParametersBuilder<Model> searchParametersBuilder = SearchParametersBuilder<Model>.Create();
 
             Assert.IsNull(searchParametersBuilder.Facets);
 
-            searchParametersBuilder.WithFacet(_ => _.SearchScore);
+            searchParametersBuilder.WithFacet(_ => Constants.SearchScore);
 
             Assert.IsNotNull(searchParametersBuilder.Facets);
             Assert.AreEqual(1, searchParametersBuilder.Facets.Count());
@@ -31,11 +31,11 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void SearchPropertyNameUtility_HighlightFields()
         {
-            ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
+            ISearchParametersBuilder<Model> searchParametersBuilder = SearchParametersBuilder<Model>.Create();
 
             Assert.IsNull(searchParametersBuilder.HighlightFields);
 
-            searchParametersBuilder.WithHighlightField(_ => _.SearchScore);
+            searchParametersBuilder.WithHighlightField(_ => Constants.SearchScore);
 
             Assert.IsNotNull(searchParametersBuilder.HighlightFields);
             Assert.AreEqual(1, searchParametersBuilder.HighlightFields.Count());
@@ -51,7 +51,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void SearchPropertyNameUtility_IncludeTotalResultCount()
         {
-            ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
+            ISearchParametersBuilder<Model> searchParametersBuilder = SearchParametersBuilder<Model>.Create();
 
             Assert.IsFalse(searchParametersBuilder.IncludeTotalResultCount);
 
@@ -67,11 +67,11 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void SearchPropertyNameUtility_OrderBy()
         {
-            ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
+            ISearchParametersBuilder<Model> searchParametersBuilder = SearchParametersBuilder<Model>.Create();
 
             Assert.IsNull(searchParametersBuilder.OrderBy);
 
-            searchParametersBuilder.WithOrderBy(_ => _.SearchScore).WithThenByDescending(_ => _.SearchScore);
+            searchParametersBuilder.WithOrderBy(_ => Constants.SearchScore).WithThenByDescending(_ => Constants.SearchScore);
 
             Assert.IsNotNull(searchParametersBuilder.OrderBy);
             Assert.AreEqual(2, searchParametersBuilder.OrderBy.Count());
@@ -85,7 +85,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
             Assert.AreEqual("search.score() asc", parameters.OrderBy.ElementAtOrDefault(0));
             Assert.AreEqual("search.score() desc", parameters.OrderBy.ElementAtOrDefault(1));
 
-            searchParametersBuilder.WithOrderByDescending(_ => _.SearchScore).WithThenBy(_ => _.SearchScore);
+            searchParametersBuilder.WithOrderByDescending(_ => Constants.SearchScore).WithThenBy(_ => Constants.SearchScore);
 
             Assert.IsNotNull(searchParametersBuilder.OrderBy);
             Assert.AreEqual(2, searchParametersBuilder.OrderBy.Count());
@@ -103,7 +103,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void SearchPropertyNameUtility_ScoringParameters()
         {
-            ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
+            ISearchParametersBuilder<Model> searchParametersBuilder = SearchParametersBuilder<Model>.Create();
 
             Assert.IsNull(searchParametersBuilder.ScoringParameters);
 
@@ -121,7 +121,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void SearchPropertyNameUtility_ScoringProfile()
         {
-            ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
+            ISearchParametersBuilder<Model> searchParametersBuilder = SearchParametersBuilder<Model>.Create();
 
             Assert.IsNull(searchParametersBuilder.ScoringProfile);
 
@@ -138,7 +138,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void SearchPropertyNameUtility_SearchMode()
         {
-            ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
+            ISearchParametersBuilder<Model> searchParametersBuilder = SearchParametersBuilder<Model>.Create();
 
             Assert.AreEqual(SearchMode.Any, searchParametersBuilder.SearchMode);
 
@@ -154,11 +154,11 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void SearchPropertyNameUtility_Select()
         {
-            ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
+            ISearchParametersBuilder<Model> searchParametersBuilder = SearchParametersBuilder<Model>.Create();
 
             Assert.IsNull(searchParametersBuilder.Select);
 
-            searchParametersBuilder.WithSelect(_ => _.SearchScore);
+            searchParametersBuilder.WithSelect(_ => Constants.SearchScore);
 
             Assert.IsNotNull(searchParametersBuilder.Select);
             Assert.AreEqual(1, searchParametersBuilder.Select.Count());
@@ -174,7 +174,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void SearchPropertyNameUtility_Skip()
         {
-            ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
+            ISearchParametersBuilder<Model> searchParametersBuilder = SearchParametersBuilder<Model>.Create();
 
             Assert.IsNull(searchParametersBuilder.Skip);
 
@@ -188,9 +188,9 @@ namespace AzureSearchQueryBuilder.Tests.Builders
             Assert.AreEqual(1, parameters.Skip);
         }
 
-        protected override IParametersBuilder<TestModel, SearchParameters> ConstructBuilder()
+        protected override IParametersBuilder<Model, SearchParameters> ConstructBuilder()
         {
-            return SearchParametersBuilder<TestModel>.Create();
+            return SearchParametersBuilder<Model>.Create();
         }
     }
 }

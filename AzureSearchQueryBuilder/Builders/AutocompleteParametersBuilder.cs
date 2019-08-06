@@ -1,11 +1,9 @@
 ﻿using System.Linq;
-using AzureSearchQueryBuilder.Models;
 using Microsoft.Azure.Search.Models;
 
 namespace AzureSearchQueryBuilder.Builders
 {
     public class AutocompleteParametersBuilder<TModel> : ParametersBuilder<TModel, AutocompleteParameters>, IAutocompleteParametersBuilder<TModel>
-        where TModel : SearchModel
     {
         private AutocompleteParametersBuilder()
         {

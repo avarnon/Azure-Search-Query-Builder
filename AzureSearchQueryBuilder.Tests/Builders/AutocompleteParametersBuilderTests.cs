@@ -5,12 +5,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace AzureSearchQueryBuilder.Tests.Builders
 {
     [TestClass]
-    public class AutocompleteParametersBuilderTests : ParametersBuilderTests<TestModel, AutocompleteParameters>
+    public class AutocompleteParametersBuilderTests : ParametersBuilderTests<AutocompleteParameters>
     {
         [TestMethod]
         public void AutocompletePropertyNameUtility_AutocompleteMode()
         {
-            IAutocompleteParametersBuilder<TestModel> autocompleteParametersBuilder = AutocompleteParametersBuilder<TestModel>.Create();
+            IAutocompleteParametersBuilder<Model> autocompleteParametersBuilder = AutocompleteParametersBuilder<Model>.Create();
 
             Assert.AreEqual(AutocompleteMode.OneTerm, autocompleteParametersBuilder.AutocompleteMode);
 
@@ -27,7 +27,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         [TestMethod]
         public void AutocompletePropertyNameUtility_UseFuzzyMatching()
         {
-            IAutocompleteParametersBuilder<TestModel> autocompleteParametersBuilder = AutocompleteParametersBuilder<TestModel>.Create();
+            IAutocompleteParametersBuilder<Model> autocompleteParametersBuilder = AutocompleteParametersBuilder<Model>.Create();
 
             Assert.IsNull(autocompleteParametersBuilder.UseFuzzyMatching);
 
@@ -41,9 +41,9 @@ namespace AzureSearchQueryBuilder.Tests.Builders
             Assert.AreEqual(true, parameters.UseFuzzyMatching);
         }
 
-        protected override IParametersBuilder<TestModel, AutocompleteParameters> ConstructBuilder()
+        protected override IParametersBuilder<Model, AutocompleteParameters> ConstructBuilder()
         {
-            return AutocompleteParametersBuilder<TestModel>.Create();
+            return AutocompleteParametersBuilder<Model>.Create();
         }
     }
 }
