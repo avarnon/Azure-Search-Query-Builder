@@ -8,7 +8,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
     public class AutocompleteParametersBuilderTests : ParametersBuilderTests<TestModel, AutocompleteParameters>
     {
         [TestMethod]
-        public void AutocompleteParametersBuilder_AutocompleteMode()
+        public void AutocompletePropertyNameUtility_AutocompleteMode()
         {
             IAutocompleteParametersBuilder<TestModel> autocompleteParametersBuilder = AutocompleteParametersBuilder<TestModel>.Create();
 
@@ -25,7 +25,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         }
 
         [TestMethod]
-        public void AutocompleteParametersBuilder_UseFuzzyMatching()
+        public void AutocompletePropertyNameUtility_UseFuzzyMatching()
         {
             IAutocompleteParametersBuilder<TestModel> autocompleteParametersBuilder = AutocompleteParametersBuilder<TestModel>.Create();
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using AzureSearchQueryBuilder.Helpers;
 using AzureSearchQueryBuilder.Models;
 using Microsoft.Azure.Search.Models;
 
@@ -47,7 +48,7 @@ namespace AzureSearchQueryBuilder.Builders
 
             this._orderBy = new List<string>();
 
-            string orderBy = GetPropertyName(lambdaExpression);
+            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
             this._orderBy.Add($"{orderBy} asc");
             return this;
         }
@@ -58,7 +59,7 @@ namespace AzureSearchQueryBuilder.Builders
 
             this._orderBy = new List<string>();
 
-            string orderBy = GetPropertyName(lambdaExpression);
+            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
             this._orderBy.Add($"{orderBy} desc");
             return this;
         }
@@ -72,7 +73,7 @@ namespace AzureSearchQueryBuilder.Builders
                 this._select = new List<string>();
             }
 
-            string selectField = GetPropertyName(lambdaExpression);
+            string selectField = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
             this._select.Add(selectField);
             return this;
         }
@@ -88,7 +89,7 @@ namespace AzureSearchQueryBuilder.Builders
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
             if (this._orderBy == null || this._orderBy.Count < 1) throw new Exception();
 
-            string orderBy = GetPropertyName(lambdaExpression);
+            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
             this._orderBy.Add($"{orderBy} asc");
             return this;
         }
@@ -98,7 +99,7 @@ namespace AzureSearchQueryBuilder.Builders
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
             if (this._orderBy == null || this._orderBy.Count < 1) throw new Exception();
 
-            string orderBy = GetPropertyName(lambdaExpression);
+            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
             this._orderBy.Add($"{orderBy} desc");
             return this;
         }

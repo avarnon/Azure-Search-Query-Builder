@@ -9,7 +9,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
     public class SearchParametersBuilderTests : ParametersBuilderTests<TestModel, SearchParameters>
     {
         [TestMethod]
-        public void SearchParametersBuilder_Facets()
+        public void SearchPropertyNameUtility_Facets()
         {
             ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
 
@@ -29,7 +29,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         }
 
         [TestMethod]
-        public void SearchParametersBuilder_HighlightFields()
+        public void SearchPropertyNameUtility_HighlightFields()
         {
             ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
 
@@ -49,7 +49,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         }
 
         [TestMethod]
-        public void SearchParametersBuilder_IncludeTotalResultCount()
+        public void SearchPropertyNameUtility_IncludeTotalResultCount()
         {
             ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
 
@@ -65,7 +65,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         }
 
         [TestMethod]
-        public void SearchParametersBuilder_OrderBy()
+        public void SearchPropertyNameUtility_OrderBy()
         {
             ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
 
@@ -101,7 +101,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         }
 
         [TestMethod]
-        public void SearchParametersBuilder_ScoringParameters()
+        public void SearchPropertyNameUtility_ScoringParameters()
         {
             ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
 
@@ -119,7 +119,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         }
 
         [TestMethod]
-        public void SearchParametersBuilder_ScoringProfile()
+        public void SearchPropertyNameUtility_ScoringProfile()
         {
             ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
 
@@ -136,7 +136,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         }
 
         [TestMethod]
-        public void SearchParametersBuilder_SearchMode()
+        public void SearchPropertyNameUtility_SearchMode()
         {
             ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
 
@@ -152,7 +152,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         }
 
         [TestMethod]
-        public void SearchParametersBuilder_Select()
+        public void SearchPropertyNameUtility_Select()
         {
             ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
 
@@ -172,7 +172,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         }
 
         [TestMethod]
-        public void SearchParametersBuilder_Skip()
+        public void SearchPropertyNameUtility_Skip()
         {
             ISearchParametersBuilder<TestModel> searchParametersBuilder = SearchParametersBuilder<TestModel>.Create();
 

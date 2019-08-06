@@ -9,7 +9,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
     public class SuggestParametersBuilderTests : ParametersBuilderTests<TestModel, SuggestParameters>
     {
         [TestMethod]
-        public void SearchParametersBuilder_OrderBy()
+        public void SearchPropertyNameUtility_OrderBy()
         {
             ISuggestParametersBuilder<TestModel> suggestParametersBuilder = SuggestParametersBuilder<TestModel>.Create();
 
@@ -45,7 +45,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         }
 
         [TestMethod]
-        public void SearchParametersBuilder_Select()
+        public void SearchPropertyNameUtility_Select()
         {
             ISuggestParametersBuilder<TestModel> suggestParametersBuilder = SuggestParametersBuilder<TestModel>.Create();
 
@@ -65,7 +65,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         }
 
         [TestMethod]
-        public void SuggestParametersBuilder_UseFuzzyMatching()
+        public void SuggestPropertyNameUtility_UseFuzzyMatching()
         {
             ISuggestParametersBuilder<TestModel> suggestParametersBuilder = SuggestParametersBuilder<TestModel>.Create();
 
