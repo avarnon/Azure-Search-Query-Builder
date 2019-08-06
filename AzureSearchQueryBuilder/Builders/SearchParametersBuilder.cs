@@ -294,7 +294,8 @@ namespace AzureSearchQueryBuilder.Builders
         public IOrderedSearchParametersBuilder<TModel> WithThenBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
-            if (this._orderBy == null || this._orderBy.Count < 1 || this._orderBy.Count >= 32) throw new Exception();
+            if (this._orderBy == null || this._orderBy.Count < 1) throw new ArgumentException($"{nameof(ISuggestParametersBuilder<TModel>.OrderBy)} has not been initialized", nameof(lambdaExpression));
+            if (this._orderBy.Count >= 32) throw new ArgumentException($"{nameof(ISuggestParametersBuilder<TModel>.OrderBy)} has exceeded the maximum 32 clauses", nameof(lambdaExpression));
 
             string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
             this._orderBy.Add($"{orderBy} asc");
@@ -310,7 +311,8 @@ namespace AzureSearchQueryBuilder.Builders
         public IOrderedSearchParametersBuilder<TModel> WithThenByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
-            if (this._orderBy == null || this._orderBy.Count < 1 || this._orderBy.Count >= 32) throw new Exception();
+            if (this._orderBy == null || this._orderBy.Count < 1) throw new ArgumentException($"{nameof(ISuggestParametersBuilder<TModel>.OrderBy)} has not been initialized", nameof(lambdaExpression));
+            if (this._orderBy.Count >= 32) throw new ArgumentException($"{nameof(ISuggestParametersBuilder<TModel>.OrderBy)} has exceeded the maximum 32 clauses", nameof(lambdaExpression));
 
             string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
             this._orderBy.Add($"{orderBy} desc");

@@ -30,7 +30,8 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.NotEqual:
                     {
                         BinaryExpression binaryExpression = lambdaExpression.Body as BinaryExpression;
-                        if (binaryExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                        if (binaryExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)} to be of type {nameof(BinaryExpression)}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
+
                         return GetFilterExpression(binaryExpression);
                     }
 
@@ -39,14 +40,15 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.Not:
                     {
                         UnaryExpression unaryExpression = lambdaExpression.Body as UnaryExpression;
-                        if (unaryExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                        if (unaryExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)} to be of type {nameof(UnaryExpression)}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
+
                         return GetFilterExpression(unaryExpression);
                     }
 
                 case ExpressionType.MemberAccess:
                     {
                         MemberExpression memberExpression = lambdaExpression.Body as MemberExpression;
-                        if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                        if (memberExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)} to be of type {nameof(MemberExpression)}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
 
                         return PropertyNameUtility.GetPropertyName(memberExpression, false);
                     }
@@ -54,7 +56,7 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.Call:
                     {
                         MethodCallExpression methodCallExpression = lambdaExpression.Body as MethodCallExpression;
-                        if (methodCallExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                        if (methodCallExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)} to be of type {nameof(MethodCallExpression)}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
 
                         switch (methodCallExpression.Method.Name)
                         {
@@ -62,14 +64,17 @@ namespace AzureSearchQueryBuilder.Helpers
                             case nameof(Queryable.All):
                                 {
                                     IList<string> parts = new List<string>();
+                                    int idx = 0;
                                     foreach (Expression argumentExpression in methodCallExpression.Arguments)
                                     {
+                                        idx++;
                                         switch (argumentExpression.NodeType)
                                         {
                                             case ExpressionType.MemberAccess:
                                                 {
                                                     MemberExpression argumentMemberExpression = argumentExpression as MemberExpression;
-                                                    if (argumentMemberExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                                                    if (argumentMemberExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(MemberExpression)}\r\n\t{methodCallExpression}", nameof(lambdaExpression));
+
                                                     parts.Add(PropertyNameUtility.GetPropertyName(argumentMemberExpression, false));
                                                 }
 
@@ -78,10 +83,10 @@ namespace AzureSearchQueryBuilder.Helpers
                                             case ExpressionType.Lambda:
                                                 {
                                                     LambdaExpression argumentLambdaExpression = argumentExpression as LambdaExpression;
-                                                    if (argumentLambdaExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                                                    if (argumentLambdaExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(LambdaExpression)}\r\n\t{methodCallExpression}", nameof(lambdaExpression));
 
                                                     ParameterExpression argumentParameterExpression = argumentLambdaExpression.Parameters.SingleOrDefault() as ParameterExpression;
-                                                    if (argumentParameterExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                                                    if (argumentParameterExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)}.{nameof(methodCallExpression.Arguments)}[{idx}].{nameof(LambdaExpression.Parameters)}[0] to be of type {nameof(ParameterExpression)}\r\n\t{argumentLambdaExpression}", nameof(lambdaExpression));
 
                                                     string inner = GetFilterExpression(argumentLambdaExpression);
                                                     parts.Add(Constants.ODataMemberAccessOperator);
@@ -100,7 +105,7 @@ namespace AzureSearchQueryBuilder.Helpers
                                                 break;
 
                                             default:
-                                                throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                                                throw new ArgumentException($"Invalid expression type {lambdaExpression.Body.NodeType}\r\n\t{methodCallExpression}", nameof(lambdaExpression));
                                         }
                                     }
 
@@ -152,7 +157,7 @@ namespace AzureSearchQueryBuilder.Helpers
                     }
 
                 default:
-                    throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                    throw new ArgumentException($"Invalid expression type {lambdaExpression.Body.NodeType}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
             }
         }
 
@@ -193,7 +198,7 @@ namespace AzureSearchQueryBuilder.Helpers
                     break;
 
                 default:
-                    throw new ArgumentException($"Invalid expression body type {binaryExpression.GetType()}", nameof(binaryExpression));
+                    throw new ArgumentException($"Invalid expression type {binaryExpression.NodeType}\r\n\t{binaryExpression}", nameof(binaryExpression));
             }
 
             string left = null;
@@ -202,7 +207,7 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.MemberAccess:
                     {
                         MemberExpression memberExpression = binaryExpression.Left as MemberExpression;
-                        if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {binaryExpression.Left.GetType()}", nameof(binaryExpression));
+                        if (memberExpression == null) throw new ArgumentException($"Expected {nameof(binaryExpression)}.{nameof(BinaryExpression.Left)} to be of type {nameof(MemberExpression)}\r\n\t{binaryExpression}", nameof(binaryExpression));
 
                         left = PropertyNameUtility.GetPropertyName(memberExpression, false);
                     }
@@ -216,14 +221,14 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.Convert:
                     {
                         UnaryExpression unaryExpression = binaryExpression.Left as UnaryExpression;
-                        if (unaryExpression == null) throw new ArgumentException($"Invalid expression body type {binaryExpression.Left.GetType()}", nameof(binaryExpression));
+                        if (unaryExpression == null) throw new ArgumentException($"Expected {nameof(binaryExpression)}.{nameof(BinaryExpression.Left)} to be of type {nameof(UnaryExpression)}\r\n\t{binaryExpression}", nameof(binaryExpression));
 
                         switch (unaryExpression.Operand.NodeType)
                         {
                             case ExpressionType.MemberAccess:
                                 {
                                     MemberExpression memberExpression = unaryExpression.Operand as MemberExpression;
-                                    if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
+                                    if (unaryExpression == null) throw new ArgumentException($"Expected {nameof(binaryExpression)}.{nameof(BinaryExpression.Left)}.{nameof(UnaryExpression.Operand)} to be of type {nameof(MemberExpression)}\r\n\t{binaryExpression}", nameof(binaryExpression));
 
                                     left = PropertyNameUtility.GetPropertyName(memberExpression, false);
                                 }
@@ -231,14 +236,14 @@ namespace AzureSearchQueryBuilder.Helpers
                                 break;
 
                             default:
-                                throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
+                                throw new ArgumentException($"Invalid expression type {unaryExpression.Operand.GetType()}", nameof(binaryExpression));
                         }
                     }
 
                     break;
 
                 default:
-                    throw new ArgumentException($"Invalid expression body type {binaryExpression.Left.GetType()}", nameof(binaryExpression));
+                    throw new ArgumentException($"Invalid expression type {binaryExpression.Left.NodeType}\r\n\t{binaryExpression}", nameof(binaryExpression));
             }
 
             object rightValue = null;
@@ -247,7 +252,7 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.Constant:
                     {
                         ConstantExpression constantExpression = binaryExpression.Right as ConstantExpression;
-                        if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {binaryExpression.Right.GetType()}", nameof(binaryExpression));
+                        if (constantExpression == null) throw new ArgumentException($"Expected {nameof(binaryExpression)}.{nameof(BinaryExpression.Right)} to be of type {nameof(ConstantExpression)}\r\n\t{binaryExpression}", nameof(binaryExpression));
 
                         rightValue = constantExpression.Value;
                     }
@@ -257,7 +262,7 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.Call:
                     {
                         MethodCallExpression methodCallExpression = binaryExpression.Right as MethodCallExpression;
-                        if (methodCallExpression == null) throw new ArgumentException($"Invalid expression body type {binaryExpression.Right.GetType()}", nameof(binaryExpression));
+                        if (methodCallExpression == null) throw new ArgumentException($"Expected {nameof(binaryExpression)}.{nameof(BinaryExpression.Right)} to be of type {nameof(MethodCallExpression)}\r\n\t{binaryExpression}", nameof(binaryExpression));
 
                         rightValue = methodCallExpression.Method.Invoke(null, new object[0]);
                     }
@@ -267,7 +272,7 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.Convert:
                     {
                         UnaryExpression unaryExpression = binaryExpression.Right as UnaryExpression;
-                        if (unaryExpression == null) throw new ArgumentException($"Invalid expression body type {binaryExpression.Right.GetType()}", nameof(binaryExpression));
+                        if (unaryExpression == null) throw new ArgumentException($"Expected {nameof(binaryExpression)}.{nameof(BinaryExpression.Right)} to be of type {nameof(UnaryExpression)}\r\n\t{binaryExpression}", nameof(binaryExpression));
 
                         rightValue = GetFilterValueForBinaryRightConvert(unaryExpression);
                     }
@@ -277,15 +282,15 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.MemberAccess:
                     {
                         MemberExpression memberExpression = binaryExpression.Right as MemberExpression;
-                        if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {binaryExpression.Right.GetType()}", nameof(binaryExpression));
+                        if (memberExpression == null) throw new ArgumentException($"Expected {nameof(binaryExpression)}.{nameof(BinaryExpression.Right)} to be of type {nameof(MemberExpression)}\r\n\t{binaryExpression}", nameof(binaryExpression));
 
                         ConstantExpression constantExpression = memberExpression.Expression as ConstantExpression;
-                        if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {binaryExpression.Right.GetType()}", nameof(binaryExpression));
+                        if (memberExpression == null) throw new ArgumentException($"Expected {nameof(binaryExpression)}.{nameof(BinaryExpression.Right)}.{nameof(MemberExpression.Expression)} to be of type {nameof(ConstantExpression)}\r\n\t{binaryExpression}", nameof(binaryExpression));
 
                         string fieldName = memberExpression.Member.Name;
                         object expressionValue = constantExpression.Value;
                         FieldInfo fieldInfo = expressionValue.GetType().GetField(fieldName, BindingFlags.GetField | BindingFlags.Public | BindingFlags.Instance);
-                        if (fieldInfo == null) throw new ArgumentException($"Invalid expression body type {binaryExpression.Right.GetType()}", nameof(binaryExpression));
+                        if (fieldInfo == null) throw new ArgumentException($"Expected {nameof(binaryExpression)}.{nameof(BinaryExpression.Right)}.{nameof(MemberExpression.Expression)} is malformed\r\n\t{binaryExpression}", nameof(binaryExpression));
 
                         rightValue = fieldInfo.GetValue(expressionValue);
                     }
@@ -293,7 +298,7 @@ namespace AzureSearchQueryBuilder.Helpers
                     break;
 
                 default:
-                    throw new ArgumentException($"Invalid expression body type {binaryExpression.Right.GetType()}", nameof(binaryExpression));
+                    throw new ArgumentException($"Invalid expression type {binaryExpression.Right.NodeType}\r\n\t{binaryExpression}", nameof(binaryExpression));
             }
 
             if (rightValue == null) throw new ArgumentException($"Invalid expression body type {binaryExpression.Right.GetType()}", nameof(binaryExpression));
@@ -348,7 +353,7 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.MemberAccess:
                     {
                         MemberExpression memberExpression = unaryExpression.Operand as MemberExpression;
-                        if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(unaryExpression));
+                        if (memberExpression == null) throw new ArgumentException($"Expected {nameof(unaryExpression)}.{nameof(UnaryExpression.Operand)} to be of type {nameof(MemberExpression)}\r\n\t{unaryExpression}", nameof(unaryExpression));
 
                         operand = PropertyNameUtility.GetPropertyName(memberExpression, false);
                     }
@@ -356,7 +361,7 @@ namespace AzureSearchQueryBuilder.Helpers
                     break;
 
                 default:
-                    throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(unaryExpression));
+                    throw new ArgumentException($"Invalid expression type {unaryExpression.Operand.NodeType}\r\n\t{unaryExpression}", nameof(unaryExpression));
             }
 
             switch (unaryExpression.NodeType)
@@ -369,7 +374,7 @@ namespace AzureSearchQueryBuilder.Helpers
                     return $"{operand}";
 
                 default:
-                    throw new ArgumentException($"Invalid expression body type {unaryExpression.GetType()}", nameof(unaryExpression));
+                    throw new ArgumentException($"Invalid expression type {unaryExpression.NodeType}\r\n\t{unaryExpression}", nameof(unaryExpression));
             }
         }
 
@@ -387,15 +392,15 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.MemberAccess:
                     {
                         MemberExpression memberExpression = unaryExpression.Operand as MemberExpression;
-                        if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(unaryExpression));
+                        if (memberExpression == null) throw new ArgumentException($"Expected {nameof(unaryExpression)}.{nameof(UnaryExpression.Operand)} to be of type {nameof(MemberExpression)}\r\n\t{unaryExpression}", nameof(unaryExpression));
 
                         ConstantExpression constantExpression = memberExpression.Expression as ConstantExpression;
-                        if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(unaryExpression));
+                        if (constantExpression == null) throw new ArgumentException($"Expected {nameof(unaryExpression)}.{nameof(UnaryExpression.Operand)}.{nameof(MemberExpression.Expression)} to be of type {nameof(ConstantExpression)}\r\n\t{unaryExpression}", nameof(unaryExpression));
 
                         string fieldName = memberExpression.Member.Name;
                         object expressionValue = constantExpression.Value;
                         FieldInfo fieldInfo = expressionValue.GetType().GetField(fieldName, BindingFlags.GetField | BindingFlags.Public | BindingFlags.Instance);
-                        if (fieldInfo == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(unaryExpression));
+                        if (fieldInfo == null) throw new ArgumentException($"Expected {nameof(unaryExpression)}.{nameof(UnaryExpression.Operand)}.{nameof(MemberExpression.Expression)} is malformed\r\n\t{unaryExpression}", nameof(unaryExpression));
 
                         return fieldInfo.GetValue(expressionValue);
                     }
@@ -403,7 +408,7 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.Constant:
                     {
                         ConstantExpression constantExpression = unaryExpression.Operand as ConstantExpression;
-                        if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(unaryExpression));
+                        if (constantExpression == null) throw new ArgumentException($"Expected {nameof(unaryExpression)}.{nameof(UnaryExpression.Operand)} to be of type {nameof(ConstantExpression)}\r\n\t{unaryExpression}", nameof(unaryExpression));
 
                         return constantExpression.Value;
                     }
@@ -411,7 +416,7 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.Convert:
                     {
                         UnaryExpression innerUnaryExpression = unaryExpression.Operand as UnaryExpression;
-                        if (innerUnaryExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(unaryExpression));
+                        if (innerUnaryExpression == null) throw new ArgumentException($"Expected {nameof(unaryExpression)}.{nameof(UnaryExpression.Operand)} to be of type {nameof(UnaryExpression)}\r\n\t{unaryExpression}", nameof(unaryExpression));
 
                         return GetFilterValueForBinaryRightConvert(innerUnaryExpression);
                     }
@@ -419,13 +424,13 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.New:
                     {
                         NewExpression newExpression = unaryExpression.Operand as NewExpression;
-                        if (newExpression == null) throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(unaryExpression));
+                        if (newExpression == null) throw new ArgumentException($"Expected {nameof(unaryExpression)}.{nameof(UnaryExpression.Operand)} to be of type {nameof(NewExpression)}\r\n\t{unaryExpression}", nameof(unaryExpression));
 
                         return Activator.CreateInstance(newExpression.Type, newExpression.Arguments.Select(a => (a as ConstantExpression).Value).ToArray());
                     }
 
                 default:
-                    throw new ArgumentException($"Invalid expression body type {unaryExpression.Operand.GetType()}", nameof(unaryExpression));
+                    throw new ArgumentException($"Invalid expression type {unaryExpression.NodeType}\r\n\t{unaryExpression}", nameof(unaryExpression));
             }
         }
     }

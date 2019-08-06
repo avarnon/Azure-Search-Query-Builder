@@ -168,14 +168,6 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         }
 
         [TestMethod]
-        public void PropertyNameUtility_SerializerSettings()
-        {
-            IParametersBuilder<Model, TParameters> parametersBuilder = this.ConstructBuilder();
-
-            Assert.IsNotNull(parametersBuilder.SerializerSettings);
-        }
-
-        [TestMethod]
         public void PropertyNameUtility_Top()
         {
             IParametersBuilder<Model, TParameters> parametersBuilder = this.ConstructBuilder();

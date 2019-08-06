@@ -30,7 +30,7 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.MemberAccess:
                     {
                         MemberExpression memberExpression = lambdaExpression.Body as MemberExpression;
-                        if (memberExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body.GetType()}", nameof(lambdaExpression));
+                        if (memberExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)} to be of type {nameof(MemberExpression)}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
 
                         return GetPropertyName(memberExpression, useCamlCase);
                     }
@@ -38,7 +38,7 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.Call:
                     {
                         MethodCallExpression methodCallExpression = lambdaExpression.Body as MethodCallExpression;
-                        if (methodCallExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body.GetType()}", nameof(lambdaExpression));
+                        if (methodCallExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)} to be of type {nameof(MethodCallExpression)}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
 
                         return GetPropertyName(methodCallExpression, useCamlCase);
                     }
@@ -46,7 +46,7 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.Constant:
                     {
                         ConstantExpression constantExpression = lambdaExpression.Body as ConstantExpression;
-                        if (constantExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                        if (constantExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)} to be of type {nameof(ConstantExpression)}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
 
                         string value = constantExpression.Value?.ToString();
 
@@ -58,7 +58,7 @@ namespace AzureSearchQueryBuilder.Helpers
                     }
 
                 default:
-                    throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                    throw new ArgumentException($"Invalid expression type {lambdaExpression.NodeType}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
             }
         }
 
@@ -80,7 +80,7 @@ namespace AzureSearchQueryBuilder.Helpers
                     case ExpressionType.MemberAccess:
                         {
                             MemberExpression childMemberExpression = memberExpression.Expression as MemberExpression;
-                            if (childMemberExpression == null) throw new ArgumentException($"Invalid expression body type {memberExpression.Expression.GetType()}", nameof(memberExpression));
+                            if (childMemberExpression == null) throw new ArgumentException($"Expected {nameof(memberExpression)}.{nameof(MemberExpression.Expression)} to be of type {nameof(MemberExpression)}\r\n\t{memberExpression}", nameof(memberExpression));
 
                             parentProperty = GetPropertyName(childMemberExpression, false);
                         }
@@ -90,7 +90,7 @@ namespace AzureSearchQueryBuilder.Helpers
                     case ExpressionType.Call:
                         {
                             MethodCallExpression methodCallExpression = memberExpression.Expression as MethodCallExpression;
-                            if (methodCallExpression == null) throw new ArgumentException($"Invalid expression body type {memberExpression.Expression.GetType()}", nameof(memberExpression));
+                            if (methodCallExpression == null) throw new ArgumentException($"Expected {nameof(memberExpression)}.{nameof(MemberExpression.Expression)} to be of type {nameof(MethodCallExpression)}\r\n\t{memberExpression}", nameof(memberExpression));
 
                             parentProperty = GetPropertyName(methodCallExpression, false);
                         }
@@ -101,7 +101,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         break;
 
                     default:
-                        throw new ArgumentException($"Invalid expression body type {memberExpression.Expression.GetType()}", nameof(memberExpression));
+                        throw new ArgumentException($"Invalid expression type {memberExpression.NodeType}\r\n\t{memberExpression}", nameof(memberExpression));
                 }
             }
 
@@ -148,14 +148,16 @@ namespace AzureSearchQueryBuilder.Helpers
 
             IList<PropertyOrFieldInfo> tokens = new List<PropertyOrFieldInfo>();
             bool useCamlCaseLocal = useCamlCase;
+            int idx = -1;
             foreach (Expression argumentExpression in methodCallExpression.Arguments)
             {
+                idx++;
                 switch (argumentExpression.NodeType)
                 {
                     case ExpressionType.MemberAccess:
                         {
                             MemberExpression argumentMemberExpression = argumentExpression as MemberExpression;
-                            if (argumentMemberExpression == null) throw new ArgumentException($"Invalid expression body type {argumentExpression.GetType()}", nameof(methodCallExpression));
+                            if (argumentMemberExpression == null) throw new ArgumentException($"Expected {nameof(methodCallExpression)}.{nameof(MethodCallExpression.Arguments)}[{idx}] to be of type {nameof(MemberExpression)}\r\n\t{methodCallExpression}", nameof(methodCallExpression));
 
                             PropertyOrFieldInfo newToken = GetPropertyName(argumentMemberExpression, useCamlCaseLocal);
                             useCamlCaseLocal = useCamlCaseLocal || newToken.UseCamlCase;
@@ -167,7 +169,7 @@ namespace AzureSearchQueryBuilder.Helpers
                     case ExpressionType.Lambda:
                         {
                             LambdaExpression argumentLambdaExpression = argumentExpression as LambdaExpression;
-                            if (argumentLambdaExpression == null) throw new ArgumentException($"Invalid expression body type {argumentExpression.GetType()}", nameof(methodCallExpression));
+                            if (argumentLambdaExpression == null) throw new ArgumentException($"Expected {nameof(methodCallExpression)}.{nameof(MethodCallExpression.Arguments)}[{idx}] to be of type {nameof(LambdaExpression)}\r\n\t{methodCallExpression}", nameof(methodCallExpression));
 
                             PropertyOrFieldInfo newToken = GetPropertyName(argumentLambdaExpression, useCamlCaseLocal);
                             useCamlCaseLocal = useCamlCaseLocal || newToken.UseCamlCase;
@@ -177,7 +179,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         break;
 
                     default:
-                        throw new ArgumentException($"Invalid expression body type {argumentExpression.GetType()}", nameof(methodCallExpression));
+                        throw new ArgumentException($"Invalid expression type {argumentExpression.NodeType}\r\n\t{methodCallExpression}", nameof(methodCallExpression));
                 }
             }
 
