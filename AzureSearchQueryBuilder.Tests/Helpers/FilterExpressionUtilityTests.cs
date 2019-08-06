@@ -724,6 +724,43 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
             Assert.AreEqual("not boolean", result);
         }
 
+        [TestMethod]
+        public void FilterExpressionUtility_GetFilterExpression_ConstantExpression()
+        {
+            Expression<Func<Level1, string>> lambdaExpression = _ => $"{Constants.SearchScore} ge 0.5";
+            string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("search.score() ge 0.5", result);
+        }
+
+        [TestMethod]
+        public void FilterExpressionUtility_GetFilterExpression_And()
+        {
+            Expression<Func<Level1, bool>> lambdaExpression = _ => _.Boolean == true && _.Boolean != false;
+            string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("(boolean eq true) and (boolean ne false)", result);
+
+            lambdaExpression = _ => _.Boolean == true & _.Boolean != false;
+            result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("(boolean eq true) and (boolean ne false)", result);
+        }
+
+        [TestMethod]
+        public void FilterExpressionUtility_GetFilterExpression_Or()
+        {
+            Expression<Func<Level1, bool>> lambdaExpression = _ => _.Boolean == true || _.Boolean != false;
+            string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("(boolean eq true) or (boolean ne false)", result);
+
+            lambdaExpression = _ => _.Boolean == true | _.Boolean != false;
+            result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("(boolean eq true) or (boolean ne false)", result);
+        }
+
         [SerializePropertyNamesAsCamelCase]
         private class Level1
         {

@@ -44,6 +44,30 @@ namespace AzureSearchQueryBuilder.Tests.Builders
         }
 
         [TestMethod]
+        public void PropertyNameUtility_Filter_Implicit_And()
+        {
+            IParametersBuilder<Model, TParameters> parametersBuilder = this.ConstructBuilder();
+
+            Assert.IsNull(parametersBuilder.Filter);
+
+            parametersBuilder.Where(_ => _.Foo == "test")
+                .Where(_ => _.Foo != "test2");
+
+            Assert.IsNotNull(parametersBuilder.Filter);
+            Assert.AreEqual("(Foo eq 'test') and (Foo ne 'test2')", parametersBuilder.Filter);
+
+            TParameters parameters = parametersBuilder.Build();
+            Assert.IsNotNull(parameters);
+
+            PropertyInfo filterPropertyInfo = parameters.GetType().GetProperty(nameof(IParametersBuilder<Model, TParameters>.Filter));
+            Assert.IsNotNull(filterPropertyInfo);
+
+            string filter = filterPropertyInfo.GetValue(parameters) as string;
+            Assert.IsNotNull(filter);
+            Assert.AreEqual("(Foo eq 'test') and (Foo ne 'test2')", filter);
+        }
+
+        [TestMethod]
         public void PropertyNameUtility_HighlightPostTag()
         {
             IParametersBuilder<Model, TParameters> parametersBuilder = this.ConstructBuilder();

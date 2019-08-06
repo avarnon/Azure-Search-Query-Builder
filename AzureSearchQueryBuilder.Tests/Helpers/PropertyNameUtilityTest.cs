@@ -86,6 +86,15 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
             Assert.AreEqual("collectionComplex/json_property", result);
         }
 
+        [TestMethod]
+        public void PropertyNameUtility_GetPropertyName_Constant()
+        {
+            Expression<Func<Level1, string>> lambdaExpression1 = _ => Constants.SearchScore;
+            string result = PropertyNameUtility.GetPropertyName(lambdaExpression1, false);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("search.score()", result);
+        }
+
         [SerializePropertyNamesAsCamelCase]
         private class Level1
         {

@@ -20,7 +20,19 @@ namespace AzureSearchQueryBuilder.Helpers
         {
             if (lambdaExpression == null || lambdaExpression.Body == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
-            switch (lambdaExpression.Body.NodeType)
+            return GetFilterExpression(lambdaExpression.Body);
+        }
+
+        /// <summary>
+        /// Get the OData filter expression.
+        /// </summary>
+        /// <param name="expression">The expression from which to parse the OData filter.</param>
+        /// <returns>the OData filter.</returns>
+        public static string GetFilterExpression(Expression expression)
+        {
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+
+            switch (expression.NodeType)
             {
                 case ExpressionType.Equal:
                 case ExpressionType.GreaterThan:
@@ -29,8 +41,8 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.LessThanOrEqual:
                 case ExpressionType.NotEqual:
                     {
-                        BinaryExpression binaryExpression = lambdaExpression.Body as BinaryExpression;
-                        if (binaryExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)} to be of type {nameof(BinaryExpression)}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
+                        BinaryExpression binaryExpression = expression as BinaryExpression;
+                        if (binaryExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(BinaryExpression)}\r\n\t{expression}", nameof(expression));
 
                         return GetFilterExpression(binaryExpression);
                     }
@@ -39,24 +51,24 @@ namespace AzureSearchQueryBuilder.Helpers
                 case ExpressionType.IsTrue:
                 case ExpressionType.Not:
                     {
-                        UnaryExpression unaryExpression = lambdaExpression.Body as UnaryExpression;
-                        if (unaryExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)} to be of type {nameof(UnaryExpression)}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
+                        UnaryExpression unaryExpression = expression as UnaryExpression;
+                        if (unaryExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(UnaryExpression)}\r\n\t{expression}", nameof(expression));
 
                         return GetFilterExpression(unaryExpression);
                     }
 
                 case ExpressionType.MemberAccess:
                     {
-                        MemberExpression memberExpression = lambdaExpression.Body as MemberExpression;
-                        if (memberExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)} to be of type {nameof(MemberExpression)}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
+                        MemberExpression memberExpression = expression as MemberExpression;
+                        if (memberExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(MemberExpression)}\r\n\t{expression}", nameof(expression));
 
                         return PropertyNameUtility.GetPropertyName(memberExpression, false);
                     }
 
                 case ExpressionType.Call:
                     {
-                        MethodCallExpression methodCallExpression = lambdaExpression.Body as MethodCallExpression;
-                        if (methodCallExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)} to be of type {nameof(MethodCallExpression)}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
+                        MethodCallExpression methodCallExpression = expression as MethodCallExpression;
+                        if (methodCallExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(MethodCallExpression)}\r\n\t{expression}", nameof(expression));
 
                         switch (methodCallExpression.Method.Name)
                         {
@@ -73,7 +85,7 @@ namespace AzureSearchQueryBuilder.Helpers
                                             case ExpressionType.MemberAccess:
                                                 {
                                                     MemberExpression argumentMemberExpression = argumentExpression as MemberExpression;
-                                                    if (argumentMemberExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(MemberExpression)}\r\n\t{methodCallExpression}", nameof(lambdaExpression));
+                                                    if (argumentMemberExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(MemberExpression)}\r\n\t{methodCallExpression}", nameof(expression));
 
                                                     parts.Add(PropertyNameUtility.GetPropertyName(argumentMemberExpression, false));
                                                 }
@@ -83,10 +95,10 @@ namespace AzureSearchQueryBuilder.Helpers
                                             case ExpressionType.Lambda:
                                                 {
                                                     LambdaExpression argumentLambdaExpression = argumentExpression as LambdaExpression;
-                                                    if (argumentLambdaExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(LambdaExpression)}\r\n\t{methodCallExpression}", nameof(lambdaExpression));
+                                                    if (argumentLambdaExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(LambdaExpression)}\r\n\t{methodCallExpression}", nameof(expression));
 
                                                     ParameterExpression argumentParameterExpression = argumentLambdaExpression.Parameters.SingleOrDefault() as ParameterExpression;
-                                                    if (argumentParameterExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)}.{nameof(methodCallExpression.Arguments)}[{idx}].{nameof(LambdaExpression.Parameters)}[0] to be of type {nameof(ParameterExpression)}\r\n\t{argumentLambdaExpression}", nameof(lambdaExpression));
+                                                    if (argumentParameterExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}].{nameof(LambdaExpression.Parameters)}[0] to be of type {nameof(ParameterExpression)}\r\n\t{argumentLambdaExpression}", nameof(expression));
 
                                                     string inner = GetFilterExpression(argumentLambdaExpression);
                                                     parts.Add(Constants.ODataMemberAccessOperator);
@@ -105,7 +117,7 @@ namespace AzureSearchQueryBuilder.Helpers
                                                 break;
 
                                             default:
-                                                throw new ArgumentException($"Invalid expression type {lambdaExpression.Body.NodeType}\r\n\t{methodCallExpression}", nameof(lambdaExpression));
+                                                throw new ArgumentException($"Invalid expression type {argumentExpression.NodeType}\r\n\t{methodCallExpression}", nameof(expression));
                                         }
                                     }
 
@@ -115,14 +127,17 @@ namespace AzureSearchQueryBuilder.Helpers
                             case nameof(Queryable.Select):
                                 {
                                     IList<string> parts = new List<string>();
+                                    int idx = -1;
                                     foreach (Expression argumentExpression in methodCallExpression.Arguments)
                                     {
+                                        idx++;
                                         switch (argumentExpression.NodeType)
                                         {
                                             case ExpressionType.MemberAccess:
                                                 {
                                                     MemberExpression argumentMemberExpression = argumentExpression as MemberExpression;
-                                                    if (argumentMemberExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                                                    if (argumentMemberExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(MemberExpression)}\r\n\t{expression}", nameof(expression));
+
                                                     parts.Add(PropertyNameUtility.GetPropertyName(argumentMemberExpression, false));
                                                 }
 
@@ -131,10 +146,10 @@ namespace AzureSearchQueryBuilder.Helpers
                                             case ExpressionType.Lambda:
                                                 {
                                                     LambdaExpression argumentLambdaExpression = argumentExpression as LambdaExpression;
-                                                    if (argumentLambdaExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                                                    if (argumentLambdaExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(LambdaExpression)}\r\n\t{expression}", nameof(expression));
 
                                                     ParameterExpression argumentParameterExpression = argumentLambdaExpression.Parameters.SingleOrDefault() as ParameterExpression;
-                                                    if (argumentParameterExpression == null) throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                                                    if (argumentParameterExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}].{nameof(LambdaExpression.Parameters)}[0] to be of type {nameof(ParameterExpression)}\r\n\t{argumentLambdaExpression}", nameof(expression));
 
                                                     string inner = GetFilterExpression(argumentLambdaExpression);
                                                     parts.Add(Constants.ODataMemberAccessOperator);
@@ -144,20 +159,42 @@ namespace AzureSearchQueryBuilder.Helpers
                                                 break;
 
                                             default:
-                                                throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                                                throw new ArgumentException($"Invalid expression type {argumentExpression.NodeType}\r\n\t{expression}", nameof(expression));
                                         }
                                     }
 
                                     return string.Join(string.Empty, parts);
                                 }
 
+                            case nameof(string.Format):
+                                {
+                                    Func<string> stringFormat = Expression.Lambda<Func<string>>(Expression.Convert(methodCallExpression, methodCallExpression.Type)).Compile();
+                                    return stringFormat();
+                                }
+
                             default:
-                                throw new ArgumentException($"Invalid expression body type {lambdaExpression.Body?.GetType()}", nameof(lambdaExpression));
+                                throw new ArgumentException($"Invalid method {methodCallExpression.Method}\r\n\t{expression}", nameof(expression));
                         }
                     }
 
+                case ExpressionType.And:
+                case ExpressionType.AndAlso:
+                case ExpressionType.Or:
+                case ExpressionType.OrElse:
+                    {
+                        BinaryExpression binaryExpression = expression as BinaryExpression;
+                        if (binaryExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(LambdaExpression.Body)} to be of type {nameof(BinaryExpression)}\r\n\t{expression}", nameof(expression));
+
+                        string op = expression.NodeType == ExpressionType.And || expression.NodeType == ExpressionType.AndAlso
+                            ? "and"
+                            : "or";
+
+                        return $"({GetFilterExpression(binaryExpression.Left)}) {op} ({GetFilterExpression(binaryExpression.Right)})";
+                    }
+
+
                 default:
-                    throw new ArgumentException($"Invalid expression type {lambdaExpression.Body.NodeType}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
+                    throw new ArgumentException($"Invalid expression type {expression.NodeType}\r\n\t{expression}", nameof(expression));
             }
         }
 
