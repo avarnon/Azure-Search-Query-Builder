@@ -761,6 +761,23 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
             Assert.AreEqual("(boolean eq true) or (boolean ne false)", result);
         }
 
+        [TestMethod]
+        public void FilterExpressionUtility_GetFilterExpression_RightSideObject()
+        {
+            Level1 source = new Level1()
+            {
+                Complex = new Level2()
+                {
+                    JsonProperty = "Foo",
+                }
+            };
+
+            Expression<Func<Level1, bool>> lambdaExpression = _ => _.Complex.JsonProperty == source.Complex.JsonProperty;
+            string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("complex/json_property eq 'Foo'", result);
+        }
+
         [SerializePropertyNamesAsCamelCase]
         private class Level1
         {
