@@ -119,43 +119,7 @@ namespace AzureSearchQueryBuilder.Helpers
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
-            switch (expression.Operand.NodeType)
-            {
-                case ExpressionType.MemberAccess:
-                    {
-                        MemberExpression memberExpression = expression.Operand as MemberExpression;
-                        if (memberExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(UnaryExpression.Operand)} to be of type {nameof(MemberExpression)}\r\n\t{expression}", nameof(expression));
-
-                        return memberExpression.GetValue();
-                    }
-
-                case ExpressionType.Constant:
-                    {
-                        ConstantExpression constantExpression = expression.Operand as ConstantExpression;
-                        if (constantExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(UnaryExpression.Operand)} to be of type {nameof(ConstantExpression)}\r\n\t{expression}", nameof(expression));
-
-                        return constantExpression.GetValue();
-                    }
-
-                case ExpressionType.Convert:
-                    {
-                        UnaryExpression innerUnaryExpression = expression.Operand as UnaryExpression;
-                        if (innerUnaryExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(UnaryExpression.Operand)} to be of type {nameof(UnaryExpression)}\r\n\t{expression}", nameof(expression));
-
-                        return innerUnaryExpression.GetValue();
-                    }
-
-                case ExpressionType.New:
-                    {
-                        NewExpression newExpression = expression.Operand as NewExpression;
-                        if (newExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(UnaryExpression.Operand)} to be of type {nameof(NewExpression)}\r\n\t{expression}", nameof(expression));
-
-                        return newExpression.GetValue();
-                    }
-
-                default:
-                    throw new ArgumentException($"Invalid expression type {expression.NodeType}\r\n\t{expression}", nameof(expression));
-            }
+            return expression.Operand.GetValue();
         }
     }
 }
