@@ -762,7 +762,7 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
         }
 
         [TestMethod]
-        public void FilterExpressionUtility_GetFilterExpression_RightSideObject()
+        public void FilterExpressionUtility_GetFilterExpression_RightSide_Object()
         {
             Level1 source = new Level1()
             {
@@ -776,6 +776,16 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
             string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
             Assert.AreEqual("complex/json_property eq 'Foo'", result);
+        }
+
+        [TestMethod]
+        public void FilterExpressionUtility_GetFilterExpression_RightSide_MethodCall()
+        {
+            Guid source = Guid.Parse("00000000-ABCD-0000-0000-000000000000");
+            Expression<Func<Level1, bool>> lambdaExpression = _ => _.Id == source.ToString();
+            string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("id eq '00000000-abcd-0000-0000-000000000000'", result);
         }
 
         [SerializePropertyNamesAsCamelCase]

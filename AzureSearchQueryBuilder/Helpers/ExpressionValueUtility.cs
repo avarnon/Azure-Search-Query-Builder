@@ -71,33 +71,7 @@ namespace AzureSearchQueryBuilder.Helpers
         public static object GetValue(this MemberExpression expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            object memberValue = null;
-
-            switch (expression.Expression.NodeType)
-            {
-                case ExpressionType.Constant:
-                    {
-                        ConstantExpression constantExpression = expression.Expression as ConstantExpression;
-                        if (constantExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(MemberExpression.Expression)} to be of type {nameof(ConstantExpression)}\r\n\t{expression}", nameof(expression));
-
-                        memberValue = constantExpression.GetValue();
-                    }
-
-                    break;
-
-                case ExpressionType.MemberAccess:
-                    {
-                        MemberExpression memberExpression = expression.Expression as MemberExpression;
-                        if (memberExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(MemberExpression.Expression)} to be of type {nameof(MemberExpression)}\r\n\t{expression}", nameof(expression));
-
-                        memberValue = memberExpression.GetValue();
-                    }
-
-                    break;
-
-                default:
-                    throw new ArgumentException($"Invalid expression type {expression.Expression.NodeType}\r\n\t{expression.Expression}", nameof(expression));
-            }
+            object memberValue = expression.Expression.GetValue();
 
             if (memberValue == null) return null;
             if (expression.Type == memberValue.GetType()) return memberValue;
@@ -129,7 +103,9 @@ namespace AzureSearchQueryBuilder.Helpers
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
-            return expression.Method.Invoke(null, new object[0]);
+            return expression.Method.Invoke(
+                expression.Object.GetValue(),
+                expression.Arguments.Select(_ => _.GetValue()).ToArray());
         }
 
         public static object GetValue(this NewExpression expression)
