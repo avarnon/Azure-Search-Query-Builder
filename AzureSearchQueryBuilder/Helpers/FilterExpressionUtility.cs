@@ -302,12 +302,12 @@ namespace AzureSearchQueryBuilder.Helpers
             else if (rightValue.GetType() == typeof(DateTime) ||
                      rightValue.GetType() == typeof(DateTime?))
             {
-                right = string.Concat("'", ((DateTime)rightValue).ToString("O"), "'");
+                right = ((DateTime)rightValue).ToString("O");
             }
             else if (rightValue.GetType() == typeof(DateTimeOffset) ||
                      rightValue.GetType() == typeof(DateTimeOffset?))
             {
-                right = string.Concat("'", ((DateTimeOffset)rightValue).ToString("O"), "'");
+                right = ((DateTimeOffset)rightValue).ToString("O");
             }
             else if (rightValue.GetType() == typeof(bool) ||
                      rightValue.GetType() == typeof(bool?))

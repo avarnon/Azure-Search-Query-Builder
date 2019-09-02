@@ -10,6 +10,11 @@ namespace AzureSearchQueryBuilder.Helpers
     /// </summary>
     internal static class ExpressionValueUtility
     {
+        /// <summary>
+        /// Get the value from an expression.
+        /// </summary>
+        /// <param name="expression">The expression to be evaluated.</param>
+        /// <returns>the value.</returns>
         public static object GetValue(this Expression expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
@@ -56,11 +61,31 @@ namespace AzureSearchQueryBuilder.Helpers
                         return newExpression.GetValue();
                     }
 
+                case ExpressionType.Not:
+                    {
+                        UnaryExpression unaryExpression = expression as UnaryExpression;
+                        if (unaryExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(UnaryExpression)}\r\n\t{expression}", nameof(expression));
+
+                        object unaryValue = unaryExpression.GetValue();
+                        if (unaryValue == null ||
+                            (unaryValue.GetType() != typeof(bool) && unaryValue.GetType() != typeof(bool?)))
+                        {
+                            throw new ArgumentException($"Invalid type", nameof(expression));
+                        }
+
+                        return !((bool)unaryValue);
+                    }
+
                 default:
                     throw new ArgumentException($"Invalid expression type {expression.NodeType}\r\n\t{expression}", nameof(expression));
             }
         }
 
+        /// <summary>
+        /// Get the value from an expression.
+        /// </summary>
+        /// <param name="expression">The expression to be evaluated.</param>
+        /// <returns>the value.</returns>
         public static object GetValue(this ConstantExpression expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
@@ -68,6 +93,11 @@ namespace AzureSearchQueryBuilder.Helpers
             return expression.Value;
         }
 
+        /// <summary>
+        /// Get the value from an expression.
+        /// </summary>
+        /// <param name="expression">The expression to be evaluated.</param>
+        /// <returns>the value.</returns>
         public static object GetValue(this MemberExpression expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
@@ -76,29 +106,14 @@ namespace AzureSearchQueryBuilder.Helpers
             if (memberValue == null) return null;
             if (expression.Type == memberValue.GetType()) return memberValue;
 
-            FieldInfo fieldInfo = expression.Member as FieldInfo;
-            if (fieldInfo != null)
-            {
-                object fieldValue = fieldInfo.GetValue(memberValue);
-
-                return fieldValue;
-            }
-            else
-            {
-                PropertyInfo propertyInfo = expression.Member as PropertyInfo;
-                if (propertyInfo != null)
-                {
-                    object propertyValue = propertyInfo.GetValue(memberValue);
-
-                    return propertyValue;
-                }
-                else
-                {
-                    throw new ArgumentException($"Invalid expression type {expression.Expression.NodeType}\r\n\t{expression.Expression}", nameof(expression));
-                }
-            }
+            return expression.Member.GetValue(memberValue);
         }
 
+        /// <summary>
+        /// Get the value from an expression.
+        /// </summary>
+        /// <param name="expression">The expression to be evaluated.</param>
+        /// <returns>the value.</returns>
         public static object GetValue(this MethodCallExpression expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
@@ -108,6 +123,11 @@ namespace AzureSearchQueryBuilder.Helpers
                 expression.Arguments.Select(_ => _.GetValue()).ToArray());
         }
 
+        /// <summary>
+        /// Get the value from an expression.
+        /// </summary>
+        /// <param name="expression">The expression to be evaluated.</param>
+        /// <returns>the value.</returns>
         public static object GetValue(this NewExpression expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
@@ -115,11 +135,39 @@ namespace AzureSearchQueryBuilder.Helpers
             return Activator.CreateInstance(expression.Type, expression.Arguments.Select(a => a.GetValue()).ToArray());
         }
 
+        /// <summary>
+        /// Get the value from an expression.
+        /// </summary>
+        /// <param name="expression">The expression to be evaluated.</param>
+        /// <returns>the value.</returns>
         public static object GetValue(this UnaryExpression expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
             return expression.Operand.GetValue();
+        }
+
+        /// <summary>
+        /// Get the value from a member.
+        /// </summary>
+        /// <param name="memberInfo">The member to be evaluated.</param>
+        /// <param name="obj">The object whose member value will be returned.</param>
+        /// <returns>the value.</returns>
+        private static object GetValue(this MemberInfo memberInfo, object obj)
+        {
+            if (memberInfo == null) throw new ArgumentNullException(nameof(memberInfo));
+
+            switch (memberInfo.MemberType)
+            {
+                case MemberTypes.Field:
+                    return (memberInfo as FieldInfo).GetValue(obj);
+
+                case MemberTypes.Property:
+                    return (memberInfo as PropertyInfo).GetValue(obj);
+
+                default:
+                    throw new ArgumentException($"Invalid member type {memberInfo.MemberType}\r\n\t{memberInfo}", nameof(memberInfo));
+            }
         }
     }
 }

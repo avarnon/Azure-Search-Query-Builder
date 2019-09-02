@@ -110,17 +110,17 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
             lambdaExpression = _ => _.DateTime == new DateTime(2019, 08, 02, 13, 09, 08, 07, DateTimeKind.Utc);
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTime eq '2019-08-02T13:09:08.0070000Z'", result);
+            Assert.AreEqual("dateTime eq 2019-08-02T13:09:08.0070000Z", result);
 
             lambdaExpression = _ => _.DateTime == dateTimeValue;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTime eq '2019-08-02T13:09:08.0070000Z'", result);
+            Assert.AreEqual("dateTime eq 2019-08-02T13:09:08.0070000Z", result);
 
             lambdaExpression = _ => _.DateTimeOffset == dateTimeOffsetValue;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTimeOffset eq '2019-08-02T13:09:08.0070000-05:00'", result);
+            Assert.AreEqual("dateTimeOffset eq 2019-08-02T13:09:08.0070000-05:00", result);
 
             lambdaExpression = _ => _.Double == 1.1;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
@@ -213,17 +213,17 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
             lambdaExpression = _ => _.DateTime > new DateTime(2019, 08, 02, 13, 09, 08, 07, DateTimeKind.Utc);
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTime gt '2019-08-02T13:09:08.0070000Z'", result);
+            Assert.AreEqual("dateTime gt 2019-08-02T13:09:08.0070000Z", result);
 
             lambdaExpression = _ => _.DateTime > dateTimeValue;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTime gt '2019-08-02T13:09:08.0070000Z'", result);
+            Assert.AreEqual("dateTime gt 2019-08-02T13:09:08.0070000Z", result);
 
             lambdaExpression = _ => _.DateTimeOffset > dateTimeOffsetValue;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTimeOffset gt '2019-08-02T13:09:08.0070000-05:00'", result);
+            Assert.AreEqual("dateTimeOffset gt 2019-08-02T13:09:08.0070000-05:00", result);
 
             lambdaExpression = _ => _.Double > 1.1;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
@@ -301,17 +301,17 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
             lambdaExpression = _ => _.DateTime >= new DateTime(2019, 08, 02, 13, 09, 08, 07, DateTimeKind.Utc);
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTime ge '2019-08-02T13:09:08.0070000Z'", result);
+            Assert.AreEqual("dateTime ge 2019-08-02T13:09:08.0070000Z", result);
 
             lambdaExpression = _ => _.DateTime >= dateTimeValue;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTime ge '2019-08-02T13:09:08.0070000Z'", result);
+            Assert.AreEqual("dateTime ge 2019-08-02T13:09:08.0070000Z", result);
 
             lambdaExpression = _ => _.DateTimeOffset >= dateTimeOffsetValue;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTimeOffset ge '2019-08-02T13:09:08.0070000-05:00'", result);
+            Assert.AreEqual("dateTimeOffset ge 2019-08-02T13:09:08.0070000-05:00", result);
 
             lambdaExpression = _ => _.Double >= 1.1;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
@@ -389,17 +389,17 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
             lambdaExpression = _ => _.DateTime < new DateTime(2019, 08, 02, 13, 09, 08, 07, DateTimeKind.Utc);
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTime lt '2019-08-02T13:09:08.0070000Z'", result);
+            Assert.AreEqual("dateTime lt 2019-08-02T13:09:08.0070000Z", result);
 
             lambdaExpression = _ => _.DateTime < dateTimeValue;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTime lt '2019-08-02T13:09:08.0070000Z'", result);
+            Assert.AreEqual("dateTime lt 2019-08-02T13:09:08.0070000Z", result);
 
             lambdaExpression = _ => _.DateTimeOffset < dateTimeOffsetValue;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTimeOffset lt '2019-08-02T13:09:08.0070000-05:00'", result);
+            Assert.AreEqual("dateTimeOffset lt 2019-08-02T13:09:08.0070000-05:00", result);
 
             lambdaExpression = _ => _.Double < 1.1;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
@@ -477,17 +477,17 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
             lambdaExpression = _ => _.DateTime <= new DateTime(2019, 08, 02, 13, 09, 08, 07, DateTimeKind.Utc);
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTime le '2019-08-02T13:09:08.0070000Z'", result);
+            Assert.AreEqual("dateTime le 2019-08-02T13:09:08.0070000Z", result);
 
             lambdaExpression = _ => _.DateTime <= dateTimeValue;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTime le '2019-08-02T13:09:08.0070000Z'", result);
+            Assert.AreEqual("dateTime le 2019-08-02T13:09:08.0070000Z", result);
 
             lambdaExpression = _ => _.DateTimeOffset <= dateTimeOffsetValue;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTimeOffset le '2019-08-02T13:09:08.0070000-05:00'", result);
+            Assert.AreEqual("dateTimeOffset le 2019-08-02T13:09:08.0070000-05:00", result);
 
             lambdaExpression = _ => _.Double <= 1.1;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
@@ -628,17 +628,17 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
             lambdaExpression = _ => _.DateTime != new DateTime(2019, 08, 02, 13, 09, 08, 07, DateTimeKind.Utc);
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTime ne '2019-08-02T13:09:08.0070000Z'", result);
+            Assert.AreEqual("dateTime ne 2019-08-02T13:09:08.0070000Z", result);
 
             lambdaExpression = _ => _.DateTime != dateTimeValue;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTime ne '2019-08-02T13:09:08.0070000Z'", result);
+            Assert.AreEqual("dateTime ne 2019-08-02T13:09:08.0070000Z", result);
 
             lambdaExpression = _ => _.DateTimeOffset != dateTimeOffsetValue;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("dateTimeOffset ne '2019-08-02T13:09:08.0070000-05:00'", result);
+            Assert.AreEqual("dateTimeOffset ne 2019-08-02T13:09:08.0070000-05:00", result);
 
             lambdaExpression = _ => _.Double != 1.1;
             result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
@@ -786,6 +786,16 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
             string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
             Assert.AreEqual("id eq '00000000-abcd-0000-0000-000000000000'", result);
+        }
+
+        [TestMethod]
+        public void FilterExpressionUtility_GetFilterExpression_RightSide_NegatedBoolean()
+        {
+            bool source = false;
+            Expression<Func<Level1, bool>> lambdaExpression = _ => _.Boolean == !source;
+            string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("boolean eq true", result);
         }
 
         [SerializePropertyNamesAsCamelCase]

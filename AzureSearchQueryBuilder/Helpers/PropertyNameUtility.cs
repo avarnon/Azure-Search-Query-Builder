@@ -106,17 +106,21 @@ namespace AzureSearchQueryBuilder.Helpers
             }
 
             PropertyOrFieldInfo leafProperty = null;
-            PropertyInfo propertyInfo = memberExpression.Member as PropertyInfo;
-            if (propertyInfo != null)
-            {
-                leafProperty = GetPropertyName(propertyInfo, useCamlCase || (parentProperty?.UseCamlCase ?? false));
-            }
-            else
-            {
-                FieldInfo fieldInfo = memberExpression.Member as FieldInfo;
-                if (fieldInfo == null) throw new ArgumentException($"Invalid expression body type {memberExpression.Member.GetType()}", nameof(memberExpression));
 
-                leafProperty = GetFieldName(fieldInfo, parentProperty?.UseCamlCase ?? false);
+            switch (memberExpression.Member.MemberType)
+            {
+                case MemberTypes.Field:
+                    FieldInfo fieldInfo = memberExpression.Member as FieldInfo;
+                    leafProperty = GetFieldName(fieldInfo, parentProperty?.UseCamlCase ?? false);
+                    break;
+
+                case MemberTypes.Property:
+                    PropertyInfo propertyInfo = memberExpression.Member as PropertyInfo;
+                    leafProperty = GetPropertyName(propertyInfo, useCamlCase || (parentProperty?.UseCamlCase ?? false));
+                    break;
+
+                default:
+                    throw new ArgumentException($"Invalid member type {memberExpression.Member.MemberType}", nameof(memberExpression));
             }
 
             if (parentProperty == null)
