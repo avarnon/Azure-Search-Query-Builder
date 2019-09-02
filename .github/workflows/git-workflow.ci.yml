@@ -9,11 +9,24 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
+
+    - run: mkdir -p artifacts
+    
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 2.2.108
+        
     - name: Build with dotnet
       run: dotnet build --configuration Release
+      
     - name: Test with dotnet
       run: dotnet test --configuration Release
+      
+    - name: Publish Artifacts with dotnet
+      run: dotnet publish --configuration Release --output artifacts
+
+    - uses: actions/upload-artifact@master
+      with:
+        name: azure-search-query-builder
+        path: artifacts
