@@ -5,7 +5,14 @@ VisualStudioVersion = 16.0.29123.88
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureSearchQueryBuilder", "AzureSearchQueryBuilder\AzureSearchQueryBuilder.csproj", "{231AC8D1-29E8-488A-A9A3-147ED8782844}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureSearchQueryBuilder.Tests", "AzureSearchQueryBuilder.Tests\AzureSearchQueryBuilder.Tests.csproj", "{7967F8A8-98FC-423B-AD1B-BA714CCDF9DA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureSearchQueryBuilder.Tests", "AzureSearchQueryBuilder.Tests\AzureSearchQueryBuilder.Tests.csproj", "{7967F8A8-98FC-423B-AD1B-BA714CCDF9DA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{754F6A04-7D18-42E4-B707-8ADD2DDFB867}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{A7F8F5FC-C068-4E96-8CAA-6F2FC4752AB8}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\git-workflow.ci.yml = .github\workflows\git-workflow.ci.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,6 +31,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A7F8F5FC-C068-4E96-8CAA-6F2FC4752AB8} = {754F6A04-7D18-42E4-B707-8ADD2DDFB867}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {80B822C4-6FC0-487A-94F5-FEE2EF267D05}
