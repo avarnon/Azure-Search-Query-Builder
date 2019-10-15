@@ -14,6 +14,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\git-workflow.ci.yml = .github\workflows\git-workflow.ci.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BB34C85E-F663-4048-9DBC-2B5AC649B24A}"
+	ProjectSection(SolutionItems) = preProject
+		_config.yml = _config.yml
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +40,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{754F6A04-7D18-42E4-B707-8ADD2DDFB867} = {BB34C85E-F663-4048-9DBC-2B5AC649B24A}
 		{A7F8F5FC-C068-4E96-8CAA-6F2FC4752AB8} = {754F6A04-7D18-42E4-B707-8ADD2DDFB867}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
