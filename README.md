@@ -5,7 +5,7 @@ This is a library that uses expression tree parsing to build a parameters object
 
 
 
-## AutocompleteParametersBuilder\<TModel>
+## [AutocompleteParametersBuilder](AzureSearchQueryBuilder/Builders/AutocompleteParametersBuilder.cs)\<TModel>
 The [Microsoft.Azure.Search.Models.AutocompleteParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.AutocompleteParameters)\<TModel> builder.
 > TModel is the class the prepresents a document in the search index.
 ### static IAutocompleteParametersBuilder\<TModel> Create()
@@ -43,7 +43,7 @@ Sets the number of items to retrieve.
 
 
 
-## SearchParametersBuilder\<TModel>
+## [SearchParametersBuilder](AzureSearchQueryBuilder/Builders/SearchParametersBuilder.cs)\<TModel>
 The [Microsoft.Azure.Search.Models.SearchParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.searchparameters)\<TModel> builder.
 > TModel is the class the prepresents a document in the search index.
 ### static ISearchParametersBuilder\<TModel> Create()
@@ -121,7 +121,7 @@ Sets the number of items to retrieve.
 
 
 
-## SuggestParametersBuilder\<TModel>
+## [SuggestParametersBuilder](AzureSearchQueryBuilder/Builders/SuggestParametersBuilder.cs)\<TModel>
 The [Microsoft.Azure.Search.Models.SuggestParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.SuggestParameters)\<TModel> builder.
 > TModel is the class the prepresents a document in the search index.
 ### static ISuggestParametersBuilder\<TModel> Create()
