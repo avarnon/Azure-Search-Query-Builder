@@ -83,7 +83,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
 
         protected override IParametersBuilder<Model, SuggestParameters> ConstructBuilder()
         {
-            return SuggestParametersBuilder<Model>.Create();
+            return (SuggestParametersBuilder<Model>)SuggestParametersBuilder<Model>.Create();
         }
     }
 }

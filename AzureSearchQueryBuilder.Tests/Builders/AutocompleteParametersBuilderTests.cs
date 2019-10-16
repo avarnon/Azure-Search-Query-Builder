@@ -43,7 +43,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
 
         protected override IParametersBuilder<Model, AutocompleteParameters> ConstructBuilder()
         {
-            return AutocompleteParametersBuilder<Model>.Create();
+            return (AutocompleteParametersBuilder<Model>)AutocompleteParametersBuilder<Model>.Create();
         }
     }
 }

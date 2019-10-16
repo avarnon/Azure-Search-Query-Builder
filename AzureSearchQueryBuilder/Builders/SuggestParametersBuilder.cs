@@ -166,5 +166,97 @@ namespace AzureSearchQueryBuilder.Builders
             this.UseFuzzyMatching = useFuzzyMatching;
             return this;
         }
+
+        #region IOrderedSuggestParametersBuilder Explicit Implementation
+
+        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        {
+            this.WithSelect(lambdaExpression);
+            return this;
+        }
+
+        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.WithUseFuzzyMatching(bool useFuzzyMatching)
+        {
+            this.WithUseFuzzyMatching(useFuzzyMatching);
+            return this;
+        }
+
+        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
+        {
+            this.Where(lambdaExpression);
+            return this;
+        }
+
+        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.WithHighlightPostTag(string highlightPostTag)
+        {
+            this.WithHighlightPostTag(highlightPostTag);
+            return this;
+        }
+
+        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.WithHighlightPreTag(string highlightPreTag)
+        {
+            this.WithHighlightPreTag(highlightPreTag);
+            return this;
+        }
+
+        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.WithMinimumCoverage(double? minimumCoverage)
+        {
+            this.WithMinimumCoverage(minimumCoverage);
+            return this;
+        }
+
+        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        {
+            this.WithSearchField(lambdaExpression);
+            return this;
+        }
+
+        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.WithTop(int? top)
+        {
+            this.WithTop(top);
+            return this;
+        }
+
+        #endregion
+
+        #region ISuggestParametersBuilder Explicit Implementation
+
+        ISuggestParametersBuilder<TModel> ISuggestParametersBuilder<TModel>.Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
+        {
+            this.Where(lambdaExpression);
+            return this;
+        }
+
+        ISuggestParametersBuilder<TModel> ISuggestParametersBuilder<TModel>.WithHighlightPostTag(string highlightPostTag)
+        {
+            this.WithHighlightPostTag(highlightPostTag);
+            return this;
+        }
+
+        ISuggestParametersBuilder<TModel> ISuggestParametersBuilder<TModel>.WithHighlightPreTag(string highlightPreTag)
+        {
+            this.WithHighlightPreTag(highlightPreTag);
+            return this;
+        }
+
+        ISuggestParametersBuilder<TModel> ISuggestParametersBuilder<TModel>.WithMinimumCoverage(double? minimumCoverage)
+        {
+            this.WithMinimumCoverage(minimumCoverage);
+            return this;
+        }
+
+        ISuggestParametersBuilder<TModel> ISuggestParametersBuilder<TModel>.WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        {
+            this.WithSearchField(lambdaExpression);
+            return this;
+        }
+
+        ISuggestParametersBuilder<TModel> ISuggestParametersBuilder<TModel>.WithTop(int? top)
+        {
+            this.WithTop(top);
+            return this;
+        }
+
+        #endregion
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace AzureSearchQueryBuilder.Tests.Builders
 {
     [TestClass]
-    public class SearchParametersBuilderTests : ParametersBuilderTests< SearchParameters>
+    public class SearchParametersBuilderTests : ParametersBuilderTests<SearchParameters>
     {
         [TestMethod]
         public void SearchPropertyNameUtility_Facets()
@@ -190,7 +190,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
 
         protected override IParametersBuilder<Model, SearchParameters> ConstructBuilder()
         {
-            return SearchParametersBuilder<Model>.Create();
+            return (SearchParametersBuilder<Model>)SearchParametersBuilder<Model>.Create();
         }
     }
 }

@@ -318,5 +318,139 @@ namespace AzureSearchQueryBuilder.Builders
             this._orderBy.Add($"{orderBy} desc");
             return this;
         }
+
+        #region IOrderedSearchParametersBuilder Explicit Implementation
+
+        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithFacet<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        {
+            this.WithFacet(lambdaExpression);
+            return this;
+        }
+
+        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithHighlightField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        {
+            this.WithHighlightField(lambdaExpression);
+            return this;
+        }
+
+        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithIncludeTotalResultCount(bool includeTotalResultCount)
+        {
+            this.WithIncludeTotalResultCount(includeTotalResultCount);
+            return this;
+        }
+
+        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithQueryType(QueryType queryType)
+        {
+            this.WithQueryType(queryType);
+            return this;
+        }
+
+        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithScoringParameter(ScoringParameter scoringParameter)
+        {
+            this.WithScoringParameter(scoringParameter);
+            return this;
+        }
+
+        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithScoringProfile(string scoringProfile)
+        {
+            this.WithScoringProfile(scoringProfile);
+            return this;
+        }
+
+        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithSearchMode(SearchMode searchMode)
+        {
+            this.WithSearchMode(searchMode);
+            return this;
+        }
+
+        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        {
+            this.WithSelect(lambdaExpression);
+            return this;
+        }
+
+        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithSkip(int? skip)
+        {
+            this.WithSkip(skip);
+            return this;
+        }
+
+        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
+        {
+            this.Where(lambdaExpression);
+            return this;
+        }
+
+        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithHighlightPostTag(string highlightPostTag)
+        {
+            this.WithHighlightPostTag(highlightPostTag);
+            return this;
+        }
+
+        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithHighlightPreTag(string highlightPreTag)
+        {
+            this.WithHighlightPreTag(highlightPreTag);
+            return this;
+        }
+
+        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithMinimumCoverage(double? minimumCoverage)
+        {
+            this.WithMinimumCoverage(minimumCoverage);
+            return this;
+        }
+
+        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        {
+            this.WithSearchField(lambdaExpression);
+            return this;
+        }
+
+        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithTop(int? top)
+        {
+            this.WithTop(top);
+            return this;
+        }
+
+        #endregion
+
+        #region ISearchParametersBuilder Explicit Implementation
+
+        ISearchParametersBuilder<TModel> ISearchParametersBuilder<TModel>.Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
+        {
+            this.Where(lambdaExpression);
+            return this;
+        }
+
+        ISearchParametersBuilder<TModel> ISearchParametersBuilder<TModel>.WithHighlightPostTag(string highlightPostTag)
+        {
+            this.WithHighlightPostTag(highlightPostTag);
+            return this;
+        }
+
+        ISearchParametersBuilder<TModel> ISearchParametersBuilder<TModel>.WithHighlightPreTag(string highlightPreTag)
+        {
+            this.WithHighlightPreTag(highlightPreTag);
+            return this;
+        }
+
+        ISearchParametersBuilder<TModel> ISearchParametersBuilder<TModel>.WithMinimumCoverage(double? minimumCoverage)
+        {
+            this.WithMinimumCoverage(minimumCoverage);
+            return this;
+        }
+
+        ISearchParametersBuilder<TModel> ISearchParametersBuilder<TModel>.WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        {
+            this.WithSearchField(lambdaExpression);
+            return this;
+        }
+
+        ISearchParametersBuilder<TModel> ISearchParametersBuilder<TModel>.WithTop(int? top)
+        {
+            this.WithTop(top);
+            return this;
+        }
+
+        #endregion
     }
 }

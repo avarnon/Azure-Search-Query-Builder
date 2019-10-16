@@ -4,7 +4,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using AzureSearchQueryBuilder.Builders;
 using AzureSearchQueryBuilder.Helpers;
-using AzureSearchQueryBuilder.Models;
 using Microsoft.Azure.Search.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;

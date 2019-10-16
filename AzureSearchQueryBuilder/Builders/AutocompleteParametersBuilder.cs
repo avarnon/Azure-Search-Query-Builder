@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.Azure.Search.Models;
 
 namespace AzureSearchQueryBuilder.Builders
@@ -77,5 +78,45 @@ namespace AzureSearchQueryBuilder.Builders
             this.UseFuzzyMatching = useFuzzyMatching;
             return this;
         }
+
+        #region IAutocompleteParametersBuilder Explicit Implimentation
+
+        IAutocompleteParametersBuilder<TModel> IAutocompleteParametersBuilder<TModel>.Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
+        {
+            this.Where(lambdaExpression);
+            return this;
+        }
+
+        IAutocompleteParametersBuilder<TModel> IAutocompleteParametersBuilder<TModel>.WithHighlightPostTag(string highlightPostTag)
+        {
+            this.WithHighlightPostTag(highlightPostTag);
+            return this;
+        }
+
+        IAutocompleteParametersBuilder<TModel> IAutocompleteParametersBuilder<TModel>.WithHighlightPreTag(string highlightPreTag)
+        {
+            this.WithHighlightPreTag(highlightPreTag);
+            return this;
+        }
+
+        IAutocompleteParametersBuilder<TModel> IAutocompleteParametersBuilder<TModel>.WithMinimumCoverage(double? minimumCoverage)
+        {
+            this.WithMinimumCoverage(minimumCoverage);
+            return this;
+        }
+
+        IAutocompleteParametersBuilder<TModel> IAutocompleteParametersBuilder<TModel>.WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        {
+            this.WithSearchField(lambdaExpression);
+            return this;
+        }
+
+        IAutocompleteParametersBuilder<TModel> IAutocompleteParametersBuilder<TModel>.WithTop(int? top)
+        {
+            this.WithTop(top);
+            return this;
+        }
+
+        #endregion
     }
 }
