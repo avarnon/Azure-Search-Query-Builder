@@ -446,3 +446,20 @@ SuggestParametersBuilder<Hotel>.Create()
 | Select           | HotelName, Address/Country                                                           |
 | Top              | 10                                                                                   |
 | UseFuzzyMatching | True                                                                                 |
+
+
+
+
+
+## [SearchFns](AzureSearchQueryBuilder/Builders/SearchFns.cs)
+SearchFns provides access to search.in, search.ismatch, search.ismatchscoring, and search.score functions from the builder interfaces.
+```C#
+SuggestParametersBuilder<Hotel>.Create()
+  .WithOrderBy(hotel => hotel.HotelName)
+  .WithThenByBy(hotel => SearchFns.Score())
+  .Where(hotel => hotel.HotelId == "Some ID" || hotel.HotelName == "Some Name")
+  .Where(hotel => SearchFns.Score() >= 0.5)
+  .Where(hotel => SearchFns.In(hotel.Name, "One", "Two", "Three"))
+  .Where(hotel => SearchFns.IsMatch("Hotel One", hotel.Name, hotel.Description))
+  .Build();
+```
