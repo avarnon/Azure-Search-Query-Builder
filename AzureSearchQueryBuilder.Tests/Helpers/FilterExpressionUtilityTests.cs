@@ -726,10 +726,11 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
         [TestMethod]
         public void FilterExpressionUtility_GetFilterExpression_ConstantExpression()
         {
-            Expression<Func<Level1, string>> lambdaExpression = _ => $"{Constants.SearchScore} ge 0.5";
+            const string someConstant = "Some Constant";
+            Expression<Func<Level1, string>> lambdaExpression = _ => someConstant;
             string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("search.score() ge 0.5", result);
+            Assert.AreEqual(someConstant, result);
         }
 
         [TestMethod]
@@ -795,6 +796,42 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
             string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
             Assert.AreEqual("boolean eq true", result);
+        }
+
+        [TestMethod]
+        public void FilterExpressionUtility_GetFilterExpression_SearchIn()
+        {
+            Expression<Func<Level1, bool>> lambdaExpression = _ => SearchFns.In(_.Id, "1", "2", "3");
+            string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("search.in('id', '1, 2, 3')", result);
+        }
+
+        [TestMethod]
+        public void FilterExpressionUtility_GetFilterExpression_SearchIsMatch()
+        {
+            Expression<Func<Level1, bool>> lambdaExpression = _ => SearchFns.IsMatch("5", _.Id, _.Complex.Id);
+            string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("search.ismatch('5', 'id, complex/id')", result);
+        }
+
+        [TestMethod]
+        public void FilterExpressionUtility_GetFilterExpression_SearchIsMatchScoring()
+        {
+            Expression<Func<Level1, bool>> lambdaExpression = _ => SearchFns.IsMatchScoring("5", _.Id, _.Complex.Id);
+            string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("search.ismatchscoring('5', 'id, complex/id')", result);
+        }
+
+        [TestMethod]
+        public void FilterExpressionUtility_GetFilterExpression_SearchScore()
+        {
+            Expression<Func<Level1, bool>> lambdaExpression = _ => SearchFns.Score() > 0.5;
+            string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("search.score() gt 0.5", result);
         }
 
         [SerializePropertyNamesAsCamelCase]

@@ -138,7 +138,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
 
             Assert.IsNull(parametersBuilder.SearchFields);
 
-            parametersBuilder.WithSearchField(_ => Constants.SearchScore);
+            parametersBuilder.WithSearchField(_ => SearchFns.Score());
 
             try
             {

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using AzureSearchQueryBuilder.Builders;
+using Microsoft.Azure.Search.Models;
 
 namespace AzureSearchQueryBuilder.Helpers
 {
@@ -69,110 +71,233 @@ namespace AzureSearchQueryBuilder.Helpers
                         MethodCallExpression methodCallExpression = expression as MethodCallExpression;
                         if (methodCallExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(MethodCallExpression)}\r\n\t{expression}", nameof(expression));
 
-                        switch (methodCallExpression.Method.Name)
+                        if (methodCallExpression.Method.DeclaringType == typeof(SearchFns))
                         {
-                            case nameof(Queryable.Any):
-                            case nameof(Queryable.All):
-                                {
-                                    IList<string> parts = new List<string>();
-                                    int idx = 0;
-                                    foreach (Expression argumentExpression in methodCallExpression.Arguments)
+                            switch (methodCallExpression.Method.Name)
+                            {
+                                case nameof(SearchFns.IsMatch):
                                     {
-                                        idx++;
-                                        switch (argumentExpression.NodeType)
+                                        string search = methodCallExpression.Arguments[0].GetValue() as string;
+                                        NewArrayExpression searchFieldsNewArrayExpression = methodCallExpression.Arguments[1] as NewArrayExpression;
+                                        IEnumerable<string> searchFields = searchFieldsNewArrayExpression.Expressions.Select(_ => PropertyNameUtility.GetPropertyName(_, false).ToString()).ToArray();
+                                        return $"search.ismatch('{search}', '{string.Join(", ", searchFields)}')";
+                                    }
+
+                                case nameof(SearchFns.IsMatchScoring):
+                                    {
+                                        string search = methodCallExpression.Arguments[0].GetValue() as string;
+                                        NewArrayExpression searchFieldsNewArrayExpression = methodCallExpression.Arguments[1] as NewArrayExpression;
+                                        IEnumerable<string> searchFields = searchFieldsNewArrayExpression.Expressions.Select(_ => PropertyNameUtility.GetPropertyName(_, false).ToString()).ToArray();
+                                        return $"search.ismatchscoring('{search}', '{string.Join(", ", searchFields)}')";
+                                    }
+
+                                case nameof(SearchFns.In):
+                                    {
+                                        string variable = PropertyNameUtility.GetPropertyName(methodCallExpression.Arguments[0], false);
+                                        NewArrayExpression valueListNewArrayExpression = methodCallExpression.Arguments[1] as NewArrayExpression;
+                                        IEnumerable<object> valueList = valueListNewArrayExpression.Expressions.Select(_ => _.GetValue()).ToArray();
+                                        return $"search.in('{variable}', '{string.Join(", ", valueList.Select(_ => _.ToString()).ToArray())}')";
+                                    }
+
+                                case nameof(SearchFns.Score):
+                                    return "search.score()";
+
+                                default:
+                                    throw new ArgumentException($"Invalid method {methodCallExpression.Method}\r\n\t{expression}", nameof(expression));
+
+                            }
+                        }
+                        else
+                        {
+                            switch (methodCallExpression.Method.Name)
+                            {
+                                case nameof(Queryable.Any):
+                                case nameof(Queryable.All):
+                                    {
+                                        IList<string> parts = new List<string>();
+                                        int idx = 0;
+                                        foreach (Expression argumentExpression in methodCallExpression.Arguments)
                                         {
-                                            case ExpressionType.MemberAccess:
-                                                {
-                                                    MemberExpression argumentMemberExpression = argumentExpression as MemberExpression;
-                                                    if (argumentMemberExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(MemberExpression)}\r\n\t{methodCallExpression}", nameof(expression));
-
-                                                    parts.Add(PropertyNameUtility.GetPropertyName(argumentMemberExpression, false));
-                                                }
-
-                                                break;
-
-                                            case ExpressionType.Lambda:
-                                                {
-                                                    LambdaExpression argumentLambdaExpression = argumentExpression as LambdaExpression;
-                                                    if (argumentLambdaExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(LambdaExpression)}\r\n\t{methodCallExpression}", nameof(expression));
-
-                                                    ParameterExpression argumentParameterExpression = argumentLambdaExpression.Parameters.SingleOrDefault() as ParameterExpression;
-                                                    if (argumentParameterExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}].{nameof(LambdaExpression.Parameters)}[0] to be of type {nameof(ParameterExpression)}\r\n\t{argumentLambdaExpression}", nameof(expression));
-
-                                                    string inner = GetFilterExpression(argumentLambdaExpression);
-                                                    parts.Add(Constants.ODataMemberAccessOperator);
-                                                    parts.Add(methodCallExpression.Method.Name.ToLowerInvariant());
-                                                    parts.Add($"({argumentParameterExpression.Name}:{argumentParameterExpression.Name}");
-                                                    if (string.IsNullOrWhiteSpace(inner) == false &&
-                                                        inner.StartsWith(" ") == false)
+                                            idx++;
+                                            switch (argumentExpression.NodeType)
+                                            {
+                                                case ExpressionType.MemberAccess:
                                                     {
-                                                        parts.Add(Constants.ODataMemberAccessOperator);
+                                                        MemberExpression argumentMemberExpression = argumentExpression as MemberExpression;
+                                                        if (argumentMemberExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(MemberExpression)}\r\n\t{methodCallExpression}", nameof(expression));
+
+                                                        parts.Add(PropertyNameUtility.GetPropertyName(argumentMemberExpression, false));
                                                     }
 
-                                                    parts.Add(inner);
-                                                    parts.Add(")");
-                                                }
+                                                    break;
 
-                                                break;
+                                                case ExpressionType.Lambda:
+                                                    {
+                                                        LambdaExpression argumentLambdaExpression = argumentExpression as LambdaExpression;
+                                                        if (argumentLambdaExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(LambdaExpression)}\r\n\t{methodCallExpression}", nameof(expression));
 
-                                            default:
-                                                throw new ArgumentException($"Invalid expression type {argumentExpression.NodeType}\r\n\t{methodCallExpression}", nameof(expression));
+                                                        ParameterExpression argumentParameterExpression = argumentLambdaExpression.Parameters.SingleOrDefault() as ParameterExpression;
+                                                        if (argumentParameterExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}].{nameof(LambdaExpression.Parameters)}[0] to be of type {nameof(ParameterExpression)}\r\n\t{argumentLambdaExpression}", nameof(expression));
+
+                                                        string inner = GetFilterExpression(argumentLambdaExpression);
+                                                        parts.Add(Constants.ODataMemberAccessOperator);
+                                                        parts.Add(methodCallExpression.Method.Name.ToLowerInvariant());
+                                                        parts.Add($"({argumentParameterExpression.Name}:{argumentParameterExpression.Name}");
+                                                        if (string.IsNullOrWhiteSpace(inner) == false &&
+                                                            inner.StartsWith(" ") == false)
+                                                        {
+                                                            parts.Add(Constants.ODataMemberAccessOperator);
+                                                        }
+
+                                                        parts.Add(inner);
+                                                        parts.Add(")");
+                                                    }
+
+                                                    break;
+
+                                                default:
+                                                    throw new ArgumentException($"Invalid expression type {argumentExpression.NodeType}\r\n\t{methodCallExpression}", nameof(expression));
+                                            }
                                         }
+
+                                        return string.Join(string.Empty, parts);
                                     }
 
-                                    return string.Join(string.Empty, parts);
-                                }
-
-                            case nameof(Queryable.Select):
-                                {
-                                    IList<string> parts = new List<string>();
-                                    int idx = -1;
-                                    foreach (Expression argumentExpression in methodCallExpression.Arguments)
+                                case nameof(Queryable.Select):
                                     {
-                                        idx++;
-                                        switch (argumentExpression.NodeType)
+                                        IList<string> parts = new List<string>();
+                                        int idx = -1;
+                                        foreach (Expression argumentExpression in methodCallExpression.Arguments)
                                         {
-                                            case ExpressionType.MemberAccess:
-                                                {
-                                                    MemberExpression argumentMemberExpression = argumentExpression as MemberExpression;
-                                                    if (argumentMemberExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(MemberExpression)}\r\n\t{expression}", nameof(expression));
+                                            idx++;
+                                            switch (argumentExpression.NodeType)
+                                            {
+                                                case ExpressionType.MemberAccess:
+                                                    {
+                                                        MemberExpression argumentMemberExpression = argumentExpression as MemberExpression;
+                                                        if (argumentMemberExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(MemberExpression)}\r\n\t{expression}", nameof(expression));
 
-                                                    parts.Add(PropertyNameUtility.GetPropertyName(argumentMemberExpression, false));
-                                                }
+                                                        parts.Add(PropertyNameUtility.GetPropertyName(argumentMemberExpression, false));
+                                                    }
 
-                                                break;
+                                                    break;
 
-                                            case ExpressionType.Lambda:
-                                                {
-                                                    LambdaExpression argumentLambdaExpression = argumentExpression as LambdaExpression;
-                                                    if (argumentLambdaExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(LambdaExpression)}\r\n\t{expression}", nameof(expression));
+                                                case ExpressionType.Lambda:
+                                                    {
+                                                        LambdaExpression argumentLambdaExpression = argumentExpression as LambdaExpression;
+                                                        if (argumentLambdaExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(LambdaExpression)}\r\n\t{expression}", nameof(expression));
 
-                                                    ParameterExpression argumentParameterExpression = argumentLambdaExpression.Parameters.SingleOrDefault() as ParameterExpression;
-                                                    if (argumentParameterExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}].{nameof(LambdaExpression.Parameters)}[0] to be of type {nameof(ParameterExpression)}\r\n\t{argumentLambdaExpression}", nameof(expression));
+                                                        ParameterExpression argumentParameterExpression = argumentLambdaExpression.Parameters.SingleOrDefault() as ParameterExpression;
+                                                        if (argumentParameterExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}].{nameof(LambdaExpression.Parameters)}[0] to be of type {nameof(ParameterExpression)}\r\n\t{argumentLambdaExpression}", nameof(expression));
 
-                                                    string inner = GetFilterExpression(argumentLambdaExpression);
-                                                    parts.Add(Constants.ODataMemberAccessOperator);
-                                                    parts.Add(inner);
-                                                }
+                                                        string inner = GetFilterExpression(argumentLambdaExpression);
+                                                        parts.Add(Constants.ODataMemberAccessOperator);
+                                                        parts.Add(inner);
+                                                    }
 
-                                                break;
+                                                    break;
 
-                                            default:
-                                                throw new ArgumentException($"Invalid expression type {argumentExpression.NodeType}\r\n\t{expression}", nameof(expression));
+                                                default:
+                                                    throw new ArgumentException($"Invalid expression type {argumentExpression.NodeType}\r\n\t{expression}", nameof(expression));
+                                            }
                                         }
+
+                                        return string.Join(string.Empty, parts);
                                     }
 
-                                    return string.Join(string.Empty, parts);
-                                }
+                                case nameof(string.Format):
+                                    {
+                                        string format = null;
+                                        IList<object> parts = new List<object>();
+                                        int idx = -1;
+                                        foreach (Expression argumentExpression in methodCallExpression.Arguments)
+                                        {
+                                            idx++;
+                                            switch (argumentExpression.NodeType)
+                                            {
+                                                case ExpressionType.Convert:
+                                                    {
+                                                        UnaryExpression unaryExpression = argumentExpression as UnaryExpression;
+                                                        if (unaryExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(UnaryExpression)}\r\n\t{expression}", nameof(expression));
 
-                            case nameof(string.Format):
-                                {
-                                    Func<string> stringFormat = Expression.Lambda<Func<string>>(Expression.Convert(methodCallExpression, methodCallExpression.Type)).Compile();
-                                    return stringFormat();
-                                }
+                                                        if (idx == 0)
+                                                        {
+                                                            format = unaryExpression.GetValue()?.ToString();
+                                                        }
+                                                        else
+                                                        {
+                                                            parts.Add(unaryExpression.GetValue());
+                                                        }
+                                                    }
 
-                            default:
-                                throw new ArgumentException($"Invalid method {methodCallExpression.Method}\r\n\t{expression}", nameof(expression));
+                                                    break;
+
+                                                case ExpressionType.Constant:
+                                                    {
+                                                        ConstantExpression constantExpression = argumentExpression as ConstantExpression;
+                                                        if (constantExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(ConstantExpression)}\r\n\t{expression}", nameof(expression));
+
+                                                        if (idx == 0)
+                                                        {
+                                                            format = constantExpression.Value?.ToString();
+                                                        }
+                                                        else
+                                                        {
+                                                            parts.Add(constantExpression.Value);
+                                                        }
+                                                    }
+
+                                                    break;
+
+                                                case ExpressionType.MemberAccess:
+                                                    {
+                                                        MemberExpression argumentMemberExpression = argumentExpression as MemberExpression;
+                                                        if (argumentMemberExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(MemberExpression)}\r\n\t{expression}", nameof(expression));
+
+                                                        if (idx == 0)
+                                                        {
+                                                            format = PropertyNameUtility.GetPropertyName(argumentMemberExpression, false);
+                                                        }
+                                                        else
+                                                        {
+                                                            parts.Add(PropertyNameUtility.GetPropertyName(argumentMemberExpression, false));
+                                                        }
+                                                    }
+
+                                                    break;
+
+                                                case ExpressionType.Lambda:
+                                                    {
+                                                        LambdaExpression argumentLambdaExpression = argumentExpression as LambdaExpression;
+                                                        if (argumentLambdaExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(LambdaExpression)}\r\n\t{expression}", nameof(expression));
+
+                                                        ParameterExpression argumentParameterExpression = argumentLambdaExpression.Parameters.SingleOrDefault() as ParameterExpression;
+                                                        if (argumentParameterExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}].{nameof(LambdaExpression.Parameters)}[0] to be of type {nameof(ParameterExpression)}\r\n\t{argumentLambdaExpression}", nameof(expression));
+
+                                                        string inner = GetFilterExpression(argumentLambdaExpression);
+                                                        if (idx == 0)
+                                                        {
+                                                            format = inner;
+                                                        }
+                                                        else
+                                                        {
+                                                            parts.Add(inner);
+                                                        }
+                                                    }
+
+                                                    break;
+
+                                                default:
+                                                    throw new ArgumentException($"Invalid expression type {argumentExpression.NodeType}\r\n\t{expression}", nameof(expression));
+                                            }
+                                        }
+
+                                        return string.Format(format, parts.ToArray());
+                                    }
+
+                                default:
+                                    throw new ArgumentException($"Invalid method {methodCallExpression.Method}\r\n\t{expression}", nameof(expression));
+                            }
                         }
                     }
 
@@ -191,6 +316,13 @@ namespace AzureSearchQueryBuilder.Helpers
                         return $"({GetFilterExpression(binaryExpression.Left)}) {op} ({GetFilterExpression(binaryExpression.Right)})";
                     }
 
+                case ExpressionType.Constant:
+                    {
+                        ConstantExpression constantExpression = expression as ConstantExpression;
+                        if (constantExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(LambdaExpression.Body)} to be of type {nameof(ConstantExpression)}\r\n\t{expression}", nameof(expression));
+
+                        return constantExpression.Value?.ToString();
+                    }
 
                 default:
                     throw new ArgumentException($"Invalid expression type {expression.NodeType}\r\n\t{expression}", nameof(expression));
@@ -240,6 +372,16 @@ namespace AzureSearchQueryBuilder.Helpers
             string left = null;
             switch (binaryExpression.Left.NodeType)
             {
+                case ExpressionType.Call:
+                    {
+                        MethodCallExpression methodCallExpression = binaryExpression.Left as MethodCallExpression;
+                        if (methodCallExpression == null) throw new ArgumentException($"Expected {nameof(binaryExpression)}.{nameof(BinaryExpression.Left)} to be of type {nameof(MethodCallExpression)}\r\n\t{binaryExpression}", nameof(binaryExpression));
+
+                        left = PropertyNameUtility.GetPropertyName(methodCallExpression, false);
+                    }
+
+                    break;
+
                 case ExpressionType.MemberAccess:
                     {
                         MemberExpression memberExpression = binaryExpression.Left as MemberExpression;

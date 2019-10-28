@@ -13,6 +13,8 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
     [TestClass]
     public class PropertyNameUtilityTests
     {
+        private const string __someConstant = "Some Constant Value";
+
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
         public void PropertyNameUtility_GetPropertyName_Null()
@@ -88,7 +90,16 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
         [TestMethod]
         public void PropertyNameUtility_GetPropertyName_Constant()
         {
-            Expression<Func<Level1, string>> lambdaExpression1 = _ => Constants.SearchScore;
+            Expression<Func<Level1, string>> lambdaExpression1 = _ => __someConstant;
+            string result = PropertyNameUtility.GetPropertyName(lambdaExpression1, false);
+            Assert.IsNotNull(result);
+            Assert.AreEqual(__someConstant, result);
+        }
+
+        [TestMethod]
+        public void PropertyNameUtility_GetPropertyName_SearchScore()
+        {
+            Expression<Func<Level1, double>> lambdaExpression1 = _ => SearchFns.Score();
             string result = PropertyNameUtility.GetPropertyName(lambdaExpression1, false);
             Assert.IsNotNull(result);
             Assert.AreEqual("search.score()", result);

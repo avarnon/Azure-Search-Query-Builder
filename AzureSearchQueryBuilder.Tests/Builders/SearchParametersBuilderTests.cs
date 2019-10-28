@@ -15,7 +15,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
 
             Assert.IsNull(searchParametersBuilder.Facets);
 
-            searchParametersBuilder.WithFacet(_ => Constants.SearchScore);
+            searchParametersBuilder.WithFacet(_ => SearchFns.Score());
 
             Assert.IsNotNull(searchParametersBuilder.Facets);
             Assert.AreEqual(1, searchParametersBuilder.Facets.Count());
@@ -35,7 +35,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
 
             Assert.IsNull(searchParametersBuilder.HighlightFields);
 
-            searchParametersBuilder.WithHighlightField(_ => Constants.SearchScore);
+            searchParametersBuilder.WithHighlightField(_ => SearchFns.Score());
 
             Assert.IsNotNull(searchParametersBuilder.HighlightFields);
             Assert.AreEqual(1, searchParametersBuilder.HighlightFields.Count());
@@ -71,7 +71,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
 
             Assert.IsNull(searchParametersBuilder.OrderBy);
 
-            searchParametersBuilder.WithOrderBy(_ => Constants.SearchScore).WithThenByDescending(_ => Constants.SearchScore);
+            searchParametersBuilder.WithOrderBy(_ => SearchFns.Score()).WithThenByDescending(_ => SearchFns.Score());
 
             Assert.IsNotNull(searchParametersBuilder.OrderBy);
             Assert.AreEqual(2, searchParametersBuilder.OrderBy.Count());
@@ -85,7 +85,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
             Assert.AreEqual("search.score() asc", parameters.OrderBy.ElementAtOrDefault(0));
             Assert.AreEqual("search.score() desc", parameters.OrderBy.ElementAtOrDefault(1));
 
-            searchParametersBuilder.WithOrderByDescending(_ => Constants.SearchScore).WithThenBy(_ => Constants.SearchScore);
+            searchParametersBuilder.WithOrderByDescending(_ => SearchFns.Score()).WithThenBy(_ => SearchFns.Score());
 
             Assert.IsNotNull(searchParametersBuilder.OrderBy);
             Assert.AreEqual(2, searchParametersBuilder.OrderBy.Count());
@@ -158,7 +158,7 @@ namespace AzureSearchQueryBuilder.Tests.Builders
 
             Assert.IsNull(searchParametersBuilder.Select);
 
-            searchParametersBuilder.WithSelect(_ => Constants.SearchScore);
+            searchParametersBuilder.WithSelect(_ => SearchFns.Score());
 
             Assert.IsNotNull(searchParametersBuilder.Select);
             Assert.AreEqual(1, searchParametersBuilder.Select.Count());

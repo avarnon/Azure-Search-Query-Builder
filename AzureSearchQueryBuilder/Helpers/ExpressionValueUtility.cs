@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using AzureSearchQueryBuilder.Builders;
+using Microsoft.Azure.Search.Models;
 
 namespace AzureSearchQueryBuilder.Helpers
 {
@@ -76,6 +79,23 @@ namespace AzureSearchQueryBuilder.Helpers
                         return !((bool)unaryValue);
                     }
 
+                case ExpressionType.Parameter:
+                    {
+                        ParameterExpression parameterExpression = expression as ParameterExpression;
+                        if (parameterExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(ParameterExpression)}\r\n\t{expression}", nameof(expression));
+
+                        throw new ArgumentException($"Invalid expression type {expression.NodeType}\r\n\t{expression}", nameof(expression));
+                    }
+
+
+                case ExpressionType.NewArrayInit:
+                    {
+                        NewArrayExpression newArrayExpression = expression as NewArrayExpression;
+                        if (newArrayExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(NewArrayExpression)}\r\n\t{expression}", nameof(expression));
+
+                        return newArrayExpression.Expressions.Select(_ => _.GetValue()).ToArray();
+                    }
+
                 default:
                     throw new ArgumentException($"Invalid expression type {expression.NodeType}\r\n\t{expression}", nameof(expression));
             }
@@ -118,9 +138,47 @@ namespace AzureSearchQueryBuilder.Helpers
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
-            return expression.Method.Invoke(
-                expression.Object.GetValue(),
-                expression.Arguments.Select(_ => _.GetValue()).ToArray());
+            if (expression.Method.DeclaringType == typeof(SearchFns))
+            {
+                switch (expression.Method.Name)
+                {
+                    case nameof(SearchFns.IsMatch):
+                        {
+                            string search = expression.Arguments[0].GetValue() as string;
+                            NewArrayExpression searchFieldsNewArrayExpression = expression.Arguments[1] as NewArrayExpression;
+                            IEnumerable<string> searchFields = searchFieldsNewArrayExpression.Expressions.Select(_ => PropertyNameUtility.GetPropertyName(_, false).ToString()).ToArray();
+                            return $"search.ismatch('{search}', '{string.Join(", ", searchFields)}')";
+                        }
+
+                    case nameof(SearchFns.IsMatchScoring):
+                        {
+                            string search = expression.Arguments[0].GetValue() as string;
+                            NewArrayExpression searchFieldsNewArrayExpression = expression.Arguments[1] as NewArrayExpression;
+                            IEnumerable<string> searchFields = searchFieldsNewArrayExpression.Expressions.Select(_ => PropertyNameUtility.GetPropertyName(_, false).ToString()).ToArray();
+                            return $"search.ismatchscoring('{search}', '{string.Join(", ", searchFields)}')";
+                        }
+
+                    case nameof(SearchFns.In):
+                        {
+                            string variable = PropertyNameUtility.GetPropertyName(expression.Arguments[0], false);
+                            NewArrayExpression valueListNewArrayExpression = expression.Arguments[1] as NewArrayExpression;
+                            IEnumerable<object> valueList = valueListNewArrayExpression.Expressions.Select(_ => _.GetValue()).ToArray();
+                            return $"search.in('{variable}', '{string.Join(", ", valueList.Select(_ => _.ToString()).ToArray())}')";
+                        }
+
+                    case nameof(SearchFns.Score):
+                        return "search.score()";
+
+                    default:
+                        throw new ArgumentException($"Invalid method {expression.Method}\r\n\t{expression}", nameof(expression));
+                }
+            }
+            else
+            {
+                return expression.Method.Invoke(
+                    expression.Object.GetValue(),
+                    expression.Arguments.Select(_ => _.GetValue()).ToArray());
+            }
         }
 
         /// <summary>
