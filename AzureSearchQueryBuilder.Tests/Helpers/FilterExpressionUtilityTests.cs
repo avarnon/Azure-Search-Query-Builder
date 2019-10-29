@@ -813,7 +813,7 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
             Expression<Func<Level1, bool>> lambdaExpression = _ => SearchFns.IsMatch("5", _.Id, _.Complex.Id);
             string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("search.ismatch('5', 'id, complex/id')", result);
+            Assert.AreEqual("search.ismatch('5*', 'id, complex/id')", result);
         }
 
         [TestMethod]
@@ -822,7 +822,7 @@ namespace AzureSearchQueryBuilder.Tests.Helpers
             Expression<Func<Level1, bool>> lambdaExpression = _ => SearchFns.IsMatchScoring("5", _.Id, _.Complex.Id);
             string result = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
             Assert.IsNotNull(result);
-            Assert.AreEqual("search.ismatchscoring('5', 'id, complex/id')", result);
+            Assert.AreEqual("search.ismatchscoring('5*', 'id, complex/id')", result);
         }
 
         [TestMethod]
