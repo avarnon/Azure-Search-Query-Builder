@@ -147,7 +147,7 @@ namespace AzureSearchQueryBuilder.Helpers
                             string search = expression.Arguments[0].GetValue() as string;
                             NewArrayExpression searchFieldsNewArrayExpression = expression.Arguments[1] as NewArrayExpression;
                             IEnumerable<string> searchFields = searchFieldsNewArrayExpression.Expressions.Select(_ => PropertyNameUtility.GetPropertyName(_, false).ToString()).ToArray();
-                            return $"search.ismatch('{search}*', '{string.Join(", ", searchFields)}')";
+                            return $"search.ismatch('{search}', '{string.Join(", ", searchFields)}')";
                         }
 
                     case nameof(SearchFns.IsMatchScoring):
@@ -155,7 +155,7 @@ namespace AzureSearchQueryBuilder.Helpers
                             string search = expression.Arguments[0].GetValue() as string;
                             NewArrayExpression searchFieldsNewArrayExpression = expression.Arguments[1] as NewArrayExpression;
                             IEnumerable<string> searchFields = searchFieldsNewArrayExpression.Expressions.Select(_ => PropertyNameUtility.GetPropertyName(_, false).ToString()).ToArray();
-                            return $"search.ismatchscoring('{search}*', '{string.Join(", ", searchFields)}')";
+                            return $"search.ismatchscoring('{search}', '{string.Join(", ", searchFields)}')";
                         }
 
                     case nameof(SearchFns.In):
