@@ -1,6 +1,8 @@
 # Azure-Search-Query-Builder
 This is a library that uses expression tree parsing to build a Options object for performing search, suggest, and autocomplete actions with the Azure Search .NET SDK.
 
+![ASP.NET Core CI](https://github.com/avarnon/Azure-Search-Query-Builder/workflows/ASP.NET%20Core%20CI/badge.svg)
+![CodeQL](https://github.com/avarnon/Azure-Search-Query-Builder/workflows/CodeQL/badge.svg)
 
 
 
