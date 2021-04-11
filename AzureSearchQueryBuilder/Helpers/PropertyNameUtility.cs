@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using AzureSearchQueryBuilder.Builders;
 using AzureSearchQueryBuilder.Models;
-using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -22,7 +21,7 @@ namespace AzureSearchQueryBuilder.Helpers
         /// <param name="expression">The expression from which to parse the OData property name.</param>
         /// <param name="useCamlCase">Is the property name expected to be in CAML case?</param>
         /// <returns>the OData property name.</returns>
-        public static PropertyOrFieldInfo GetPropertyName(Expression expression, bool useCamlCase)
+        public static PropertyOrFieldInfo GetPropertyName(Expression expression, JsonSerializerSettings jsonSerializerSettings, bool useCamlCase)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
@@ -33,7 +32,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         LambdaExpression labmdaExpression = expression as LambdaExpression;
                         if (labmdaExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(LambdaExpression)}\r\n\t{expression}", nameof(expression));
 
-                        return GetPropertyName(labmdaExpression, useCamlCase);
+                        return GetPropertyName(labmdaExpression, jsonSerializerSettings, useCamlCase);
                     }
 
                 case ExpressionType.MemberAccess:
@@ -41,7 +40,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         MemberExpression memberExpression = expression as MemberExpression;
                         if (memberExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(MemberExpression)}\r\n\t{expression}", nameof(expression));
 
-                        return GetPropertyName(memberExpression, useCamlCase);
+                        return GetPropertyName(memberExpression, jsonSerializerSettings, useCamlCase);
                     }
 
                 case ExpressionType.Call:
@@ -49,7 +48,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         MethodCallExpression methodCallExpression = expression as MethodCallExpression;
                         if (methodCallExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(MethodCallExpression)}\r\n\t{expression}", nameof(expression));
 
-                        return GetPropertyName(methodCallExpression, useCamlCase);
+                        return GetPropertyName(methodCallExpression, jsonSerializerSettings, useCamlCase);
                     }
 
                 case ExpressionType.Constant:
@@ -63,6 +62,7 @@ namespace AzureSearchQueryBuilder.Helpers
                             value,
                             value,
                             constantExpression.Type,
+                            jsonSerializerSettings,
                             false);
                     }
 
@@ -77,7 +77,7 @@ namespace AzureSearchQueryBuilder.Helpers
         /// <param name="lambdaExpression">The expression from which to parse the OData property name.</param>
         /// <param name="useCamlCase">Is the property name expected to be in CAML case?</param>
         /// <returns>the OData property name.</returns>
-        private static PropertyOrFieldInfo GetPropertyName(LambdaExpression lambdaExpression, bool useCamlCase)
+        private static PropertyOrFieldInfo GetPropertyName(LambdaExpression lambdaExpression, JsonSerializerSettings jsonSerializerSettings, bool useCamlCase)
         {
             if (lambdaExpression == null || lambdaExpression.Body == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
@@ -88,7 +88,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         MemberExpression memberExpression = lambdaExpression.Body as MemberExpression;
                         if (memberExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)} to be of type {nameof(MemberExpression)}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
 
-                        return GetPropertyName(memberExpression, useCamlCase);
+                        return GetPropertyName(memberExpression, jsonSerializerSettings, useCamlCase);
                     }
 
                 case ExpressionType.Call:
@@ -96,7 +96,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         MethodCallExpression methodCallExpression = lambdaExpression.Body as MethodCallExpression;
                         if (methodCallExpression == null) throw new ArgumentException($"Expected {nameof(lambdaExpression)}.{nameof(LambdaExpression.Body)} to be of type {nameof(MethodCallExpression)}\r\n\t{lambdaExpression}", nameof(lambdaExpression));
 
-                        return GetPropertyName(methodCallExpression, useCamlCase);
+                        return GetPropertyName(methodCallExpression, jsonSerializerSettings, useCamlCase);
                     }
 
                 case ExpressionType.Constant:
@@ -110,6 +110,7 @@ namespace AzureSearchQueryBuilder.Helpers
                             value,
                             value,
                             constantExpression.Type,
+                            jsonSerializerSettings,
                             false);
                     }
 
@@ -124,7 +125,7 @@ namespace AzureSearchQueryBuilder.Helpers
         /// <param name="memberExpression">The expression from which to parse the OData property name.</param>
         /// <param name="useCamlCase">Is the property name expected to be in CAML case?</param>
         /// <returns>the OData property name.</returns>
-        public static PropertyOrFieldInfo GetPropertyName(MemberExpression memberExpression, bool useCamlCase)
+        public static PropertyOrFieldInfo GetPropertyName(MemberExpression memberExpression, JsonSerializerSettings jsonSerializerSettings, bool useCamlCase)
         {
             if (memberExpression == null) throw new ArgumentNullException(nameof(memberExpression));
 
@@ -138,7 +139,7 @@ namespace AzureSearchQueryBuilder.Helpers
                             MemberExpression childMemberExpression = memberExpression.Expression as MemberExpression;
                             if (childMemberExpression == null) throw new ArgumentException($"Expected {nameof(memberExpression)}.{nameof(MemberExpression.Expression)} to be of type {nameof(MemberExpression)}\r\n\t{memberExpression}", nameof(memberExpression));
 
-                            parentProperty = GetPropertyName(childMemberExpression, false);
+                            parentProperty = GetPropertyName(childMemberExpression, jsonSerializerSettings, false);
                         }
 
                         break;
@@ -148,7 +149,7 @@ namespace AzureSearchQueryBuilder.Helpers
                             MethodCallExpression methodCallExpression = memberExpression.Expression as MethodCallExpression;
                             if (methodCallExpression == null) throw new ArgumentException($"Expected {nameof(memberExpression)}.{nameof(MemberExpression.Expression)} to be of type {nameof(MethodCallExpression)}\r\n\t{memberExpression}", nameof(memberExpression));
 
-                            parentProperty = GetPropertyName(methodCallExpression, false);
+                            parentProperty = GetPropertyName(methodCallExpression, jsonSerializerSettings, false);
                         }
 
                         break;
@@ -167,12 +168,12 @@ namespace AzureSearchQueryBuilder.Helpers
             {
                 case MemberTypes.Field:
                     FieldInfo fieldInfo = memberExpression.Member as FieldInfo;
-                    leafProperty = GetFieldName(fieldInfo, parentProperty?.UseCamlCase ?? false);
+                    leafProperty = GetFieldName(fieldInfo, jsonSerializerSettings, parentProperty?.UseCamlCase ?? false);
                     break;
 
                 case MemberTypes.Property:
                     PropertyInfo propertyInfo = memberExpression.Member as PropertyInfo;
-                    leafProperty = GetPropertyName(propertyInfo, useCamlCase || (parentProperty?.UseCamlCase ?? false));
+                    leafProperty = GetPropertyName(propertyInfo, jsonSerializerSettings, useCamlCase || (parentProperty?.UseCamlCase ?? false));
                     break;
 
                 default:
@@ -192,6 +193,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         Constants.ODataMemberAccessOperator,
                         leafProperty),
                     leafProperty.PropertyOrFieldType,
+                    jsonSerializerSettings,
                     leafProperty.UseCamlCase);
             }
         }
@@ -202,7 +204,7 @@ namespace AzureSearchQueryBuilder.Helpers
         /// <param name="methodCallExpression">The expression from which to parse the OData property name.</param>
         /// <param name="useCamlCase">Is the property name expected to be in CAML case?</param>
         /// <returns>the OData property name.</returns>
-        public static PropertyOrFieldInfo GetPropertyName(MethodCallExpression methodCallExpression, bool useCamlCase)
+        public static PropertyOrFieldInfo GetPropertyName(MethodCallExpression methodCallExpression, JsonSerializerSettings jsonSerializerSettings, bool useCamlCase)
         {
             if (methodCallExpression == null) throw new ArgumentNullException(nameof(methodCallExpression));
 
@@ -213,6 +215,7 @@ namespace AzureSearchQueryBuilder.Helpers
                     nameof(SearchFns.Score),
                     "search.score()",
                     typeof(double),
+                    jsonSerializerSettings,
                     useCamlCase);
             }
             else
@@ -230,7 +233,7 @@ namespace AzureSearchQueryBuilder.Helpers
                                 MemberExpression argumentMemberExpression = argumentExpression as MemberExpression;
                                 if (argumentMemberExpression == null) throw new ArgumentException($"Expected {nameof(methodCallExpression)}.{nameof(MethodCallExpression.Arguments)}[{idx}] to be of type {nameof(MemberExpression)}\r\n\t{methodCallExpression}", nameof(methodCallExpression));
 
-                                PropertyOrFieldInfo newToken = GetPropertyName(argumentMemberExpression, useCamlCaseLocal);
+                                PropertyOrFieldInfo newToken = GetPropertyName(argumentMemberExpression, jsonSerializerSettings, useCamlCaseLocal);
                                 useCamlCaseLocal = useCamlCaseLocal || newToken.UseCamlCase;
                                 tokens.Add(newToken);
                             }
@@ -242,7 +245,7 @@ namespace AzureSearchQueryBuilder.Helpers
                                 LambdaExpression argumentLambdaExpression = argumentExpression as LambdaExpression;
                                 if (argumentLambdaExpression == null) throw new ArgumentException($"Expected {nameof(methodCallExpression)}.{nameof(MethodCallExpression.Arguments)}[{idx}] to be of type {nameof(LambdaExpression)}\r\n\t{methodCallExpression}", nameof(methodCallExpression));
 
-                                PropertyOrFieldInfo newToken = GetPropertyName(argumentLambdaExpression, useCamlCaseLocal);
+                                PropertyOrFieldInfo newToken = GetPropertyName(argumentLambdaExpression, jsonSerializerSettings, useCamlCaseLocal);
                                 useCamlCaseLocal = useCamlCaseLocal || newToken.UseCamlCase;
                                 tokens.Add(newToken);
                             }
@@ -260,6 +263,7 @@ namespace AzureSearchQueryBuilder.Helpers
                     lastPropertyInfo?.PropertyOrFieldName,
                     string.Join(Constants.ODataMemberAccessOperator, tokens),
                     lastPropertyInfo?.PropertyOrFieldType,
+                    jsonSerializerSettings,
                     useCamlCaseLocal || (lastPropertyInfo?.UseCamlCase ?? false));
             }
         }
@@ -270,7 +274,7 @@ namespace AzureSearchQueryBuilder.Helpers
         /// <param name="propertyInfo">The <see cref="PropertyInfo"/> for the property.</param>
         /// <param name="useCamlCase">Is the property name expected to be in CAML case?</param>
         /// <returns>the OData property name.</returns>
-        public static PropertyOrFieldInfo GetPropertyName(PropertyInfo propertyInfo, bool useCamlCase)
+        public static PropertyOrFieldInfo GetPropertyName(PropertyInfo propertyInfo, JsonSerializerSettings jsonSerializerSettings, bool useCamlCase)
         {
             if (propertyInfo == null) throw new ArgumentNullException(nameof(propertyInfo));
 
@@ -286,13 +290,15 @@ namespace AzureSearchQueryBuilder.Helpers
             {
                 useCamlCaseLocal = true;
             }
-            else if (jsonProperty != null &&
-                jsonProperty.NamingStrategyType != null &&
-                jsonProperty.NamingStrategyType == typeof(CamelCaseNamingStrategy))
+            else if (jsonSerializerSettings != null &&
+                jsonSerializerSettings.ContractResolver != null &&
+                jsonSerializerSettings.ContractResolver is CamelCasePropertyNamesContractResolver)
             {
                 useCamlCaseLocal = true;
             }
-            else if (propertyInfo.DeclaringType.GetCustomAttributes<SerializePropertyNamesAsCamelCaseAttribute>().Any())
+            else if (jsonProperty != null &&
+                jsonProperty.NamingStrategyType != null &&
+                jsonProperty.NamingStrategyType == typeof(CamelCaseNamingStrategy))
             {
                 useCamlCaseLocal = true;
             }
@@ -305,6 +311,7 @@ namespace AzureSearchQueryBuilder.Helpers
                 propertyInfo.Name,
                 jsonProperty?.PropertyName,
                 propertyInfo.PropertyType,
+                jsonSerializerSettings,
                 useCamlCaseLocal);
         }
 
@@ -314,7 +321,7 @@ namespace AzureSearchQueryBuilder.Helpers
         /// <param name="fieldInfo">The <see cref="FieldInfo"/> for the property.</param>
         /// <param name="useCamlCase">Is the property name expected to be in CAML case?</param>
         /// <returns>the OData property name.</returns>
-        public static PropertyOrFieldInfo GetFieldName(FieldInfo fieldInfo, bool useCamlCase)
+        public static PropertyOrFieldInfo GetFieldName(FieldInfo fieldInfo, JsonSerializerSettings jsonSerializerSettings, bool useCamlCase)
         {
             if (fieldInfo == null) throw new ArgumentNullException(nameof(fieldInfo));
 
@@ -330,13 +337,15 @@ namespace AzureSearchQueryBuilder.Helpers
             {
                 useCamlCaseLocal = true;
             }
-            else if (jsonProperty != null &&
-                jsonProperty.NamingStrategyType != null &&
-                jsonProperty.NamingStrategyType == typeof(CamelCaseNamingStrategy))
+            else if (jsonSerializerSettings != null &&
+               jsonSerializerSettings.ContractResolver != null &&
+               jsonSerializerSettings.ContractResolver is CamelCasePropertyNamesContractResolver)
             {
                 useCamlCaseLocal = true;
             }
-            else if (fieldInfo.DeclaringType.GetCustomAttributes<SerializePropertyNamesAsCamelCaseAttribute>().Any())
+            else if (jsonProperty != null &&
+                jsonProperty.NamingStrategyType != null &&
+                jsonProperty.NamingStrategyType == typeof(CamelCaseNamingStrategy))
             {
                 useCamlCaseLocal = true;
             }
@@ -349,6 +358,7 @@ namespace AzureSearchQueryBuilder.Helpers
                 fieldInfo.Name,
                 jsonProperty?.PropertyName,
                 fieldInfo.FieldType,
+                jsonSerializerSettings,
                 useCamlCaseLocal);
         }
     }

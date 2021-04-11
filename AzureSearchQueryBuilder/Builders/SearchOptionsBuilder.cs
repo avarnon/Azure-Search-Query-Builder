@@ -1,28 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
+using Azure.Search.Documents;
+using Azure.Search.Documents.Models;
 using AzureSearchQueryBuilder.Helpers;
-using Microsoft.Azure.Search.Models;
+using Newtonsoft.Json;
 
 namespace AzureSearchQueryBuilder.Builders
 {
     /// <summary>
-    /// The <see cref="SearchParametersBuilder"/>`1[<typeparamref name="TModel"/>] builder.
+    /// The <see cref="SearchOptionsBuilder"/>`1[<typeparamref name="TModel"/>] builder.
     /// </summary>
     /// <typeparam name="TModel">The type of the model representing the search index documents.</typeparam>
-    public class SearchParametersBuilder<TModel> : ParametersBuilder<TModel, SearchParameters>, ISearchParametersBuilder<TModel>, IOrderedSearchParametersBuilder<TModel>
+    public class SearchOptionsBuilder<TModel> : OptionsBuilder<TModel, SearchOptions>, ISearchOptionsBuilder<TModel>, IOrderedSearchOptionsBuilder<TModel>
     {
         private IList<string> _facets;
         private IList<string> _highlightFields;
         private IList<string> _orderBy;
-        private IList<ScoringParameter> _scoringParameters;
+        private IList<string> _ScoringParameters;
         private IList<string> _select;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        private SearchParametersBuilder()
+        private SearchOptionsBuilder(JsonSerializerSettings jsonSerializerSettings)
+            : base(jsonSerializerSettings)
         {
         }
 
@@ -39,7 +41,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// <summary>
         /// Gets the value indicating whether to fetch the total count of results.
         /// </summary>
-        public bool IncludeTotalResultCount { get; private set; }
+        public bool IncludeTotalCount { get; private set; }
 
         /// <summary>
         /// Gets a list of expressions to sort the results by.
@@ -58,12 +60,12 @@ namespace AzureSearchQueryBuilder.Builders
         ///                                    Queries are evaluated across all searchable fields (or fields indicated in searchFields) in each document by default.
         /// * <see cref="QueryType.Full"/> - Search text is interpreted using the Lucene query language which allows field-specific and weighted searches.
         /// </remarks>
-        public QueryType QueryType { get; private set; }
+        public SearchQueryType QueryType { get; private set; }
 
         /// <summary>
         /// Gets a value indicating the values for each parameter defined in a scoring function.
         /// </summary>
-        public IEnumerable<ScoringParameter> ScoringParameters { get => this._scoringParameters; }
+        public IEnumerable<string> ScoringParameters { get => this._ScoringParameters; }
 
         /// <summary>
         /// Gets the name of a scoring profile to evaluate match scores for matching documents in order to sort the results.
@@ -86,36 +88,80 @@ namespace AzureSearchQueryBuilder.Builders
         public int? Skip { get; private set; }
 
         /// <summary>
-        /// Create a new <see cref="ISearchParametersBuilder" />`1[<typeparamref name="TModel"/>]"/>.
+        /// Create a new <see cref="ISearchOptionsBuilder" />`1[<typeparamref name="TModel"/>]"/>.
         /// </summary>
-        /// <returns>a new <see cref="ISearchParametersBuilder" />`1[<typeparamref name="TModel"/>]"/>.</returns>
-        public static ISearchParametersBuilder<TModel> Create() => new SearchParametersBuilder<TModel>();
+        /// <returns>a new <see cref="ISearchOptionsBuilder" />`1[<typeparamref name="TModel"/>]"/>.</returns>
+        public static ISearchOptionsBuilder<TModel> Create(JsonSerializerSettings jsonSerializerSettings) => new SearchOptionsBuilder<TModel>(jsonSerializerSettings);
 
         /// <summary>
-        /// Build a <see cref="SearchParameters"/> object.
+        /// Build a <see cref="SearchOptions"/> object.
         /// </summary>
-        /// <returns>the <see cref="SearchParameters"/> object.</returns>
-        public override SearchParameters Build()
+        /// <returns>the <see cref="SearchOptions"/> object.</returns>
+        public override SearchOptions Build()
         {
-            return new SearchParameters()
+            SearchOptions searchOptions = new SearchOptions()
             {
-                Facets = this.Facets?.ToList(),
                 Filter = this.Filter,
-                HighlightFields = this.HighlightFields?.ToList(),
                 HighlightPostTag = this.HighlightPostTag,
                 HighlightPreTag = this.HighlightPreTag,
-                IncludeTotalResultCount = this.IncludeTotalResultCount,
+                IncludeTotalCount = this.IncludeTotalCount,
                 MinimumCoverage = this.MinimumCoverage,
-                OrderBy = this.OrderBy?.ToList(),
                 QueryType = this.QueryType,
-                ScoringParameters = this.ScoringParameters?.ToList(),
                 ScoringProfile = this.ScoringProfile,
-                SearchFields = this.SearchFields?.ToList(),
                 SearchMode = this.SearchMode,
-                Select = this.Select?.ToList(),
                 Skip = this.Skip,
-                Top = this.Top,
+                Size = this.Size,
             };
+
+            if (this.Facets != null)
+            {
+                foreach (string facet in this.Facets)
+                {
+                    searchOptions.Facets.Add(facet);
+                }
+            }
+
+            if (this.HighlightFields != null)
+            {
+                foreach (string highlightField in this.HighlightFields)
+                {
+                    searchOptions.HighlightFields.Add(highlightField);
+                }
+            }
+
+            if (this.OrderBy != null)
+            {
+                foreach (string orderBy in this.OrderBy)
+                {
+                    searchOptions.OrderBy.Add(orderBy);
+                }
+            }
+
+            if (this.ScoringParameters != null)
+            {
+                foreach (string scoringParameter in this.ScoringParameters)
+                {
+                    searchOptions.ScoringParameters.Add(scoringParameter);
+                }
+            }
+
+            if (this.SearchFields != null)
+            {
+                foreach (string searchField in this.SearchFields)
+                {
+                    searchOptions.SearchFields.Add(searchField);
+                }
+            }
+
+            if (this.Select != null)
+            {
+                foreach (string select in this.Select)
+                {
+                    searchOptions.Select.Add(select);
+                }
+            }
+
+            return searchOptions;
         }
 
         /// <summary>
@@ -124,7 +170,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property being selected.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property.</param>
         /// <returns>the updated builder.</returns>
-        public ISearchParametersBuilder<TModel> WithFacet<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public ISearchOptionsBuilder<TModel> WithFacet<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
@@ -133,7 +179,7 @@ namespace AzureSearchQueryBuilder.Builders
                 this._facets = new List<string>();
             }
 
-            string facet = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
+            string facet = PropertyNameUtility.GetPropertyName(lambdaExpression, this.JsonSerializerSettings, false);
             this._facets.Add(facet);
             return this;
         }
@@ -144,7 +190,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property being selected.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property.</param>
         /// <returns>the updated builder.</returns>
-        public ISearchParametersBuilder<TModel> WithHighlightField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public ISearchOptionsBuilder<TModel> WithHighlightField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
@@ -153,7 +199,7 @@ namespace AzureSearchQueryBuilder.Builders
                 this._highlightFields = new List<string>();
             }
 
-            string highlightField = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
+            string highlightField = PropertyNameUtility.GetPropertyName(lambdaExpression, this.JsonSerializerSettings, false);
             this._highlightFields.Add(highlightField);
             return this;
         }
@@ -163,9 +209,9 @@ namespace AzureSearchQueryBuilder.Builders
         /// </summary>
         /// <param name="includeTotalResultCount">The desired include total results count value.</param>
         /// <returns>the updated builder.</returns>
-        public ISearchParametersBuilder<TModel> WithIncludeTotalResultCount(bool includeTotalResultCount)
+        public ISearchOptionsBuilder<TModel> WithIncludeTotalCount(bool includeTotalCount)
         {
-            this.IncludeTotalResultCount = includeTotalResultCount;
+            this.IncludeTotalCount = includeTotalCount;
             return this;
         }
 
@@ -175,13 +221,13 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property to be ordered by.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property from each element.</param>
         /// <returns>the updated builder.</returns>
-        public IOrderedSearchParametersBuilder<TModel> WithOrderBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public IOrderedSearchOptionsBuilder<TModel> WithOrderBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
             this._orderBy = new List<string>();
 
-            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
+            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, this.JsonSerializerSettings, false);
             this._orderBy.Add($"{orderBy} asc");
             return this;
         }
@@ -192,13 +238,13 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property to be ordered by.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property from each element.</param>
         /// <returns>the updated builder.</returns>
-        public IOrderedSearchParametersBuilder<TModel> WithOrderByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public IOrderedSearchOptionsBuilder<TModel> WithOrderByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
             this._orderBy = new List<string>();
 
-            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
+            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, this.JsonSerializerSettings, false);
             this._orderBy.Add($"{orderBy} desc");
             return this;
         }
@@ -208,7 +254,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// </summary>
         /// <param name="queryType">The desired query type.</param>
         /// <returns>the updated builder.</returns>
-        public ISearchParametersBuilder<TModel> WithQueryType(QueryType queryType)
+        public ISearchOptionsBuilder<TModel> WithQueryType(SearchQueryType queryType)
         {
             this.QueryType = queryType;
             return this;
@@ -219,16 +265,16 @@ namespace AzureSearchQueryBuilder.Builders
         /// </summary>
         /// <param name="scoringParameter">The desired additional scoring parameter.</param>
         /// <returns>the updated builder.</returns>
-        public ISearchParametersBuilder<TModel> WithScoringParameter(ScoringParameter scoringParameter)
+        public ISearchOptionsBuilder<TModel> WithScoringParameter(string scoringParameter)
         {
             if (scoringParameter == null) throw new ArgumentNullException(nameof(scoringParameter));
 
-            if (this._scoringParameters == null)
+            if (this._ScoringParameters == null)
             {
-                this._scoringParameters = new List<ScoringParameter>();
+                this._ScoringParameters = new List<string>();
             }
 
-            this._scoringParameters.Add(scoringParameter);
+            this._ScoringParameters.Add(scoringParameter);
             return this;
         }
 
@@ -237,7 +283,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// </summary>
         /// <param name="scoringProfile">The desired scoring profile name.</param>
         /// <returns>the updated builder.</returns>
-        public ISearchParametersBuilder<TModel> WithScoringProfile(string scoringProfile)
+        public ISearchOptionsBuilder<TModel> WithScoringProfile(string scoringProfile)
         {
             this.ScoringProfile = scoringProfile;
             return this;
@@ -248,7 +294,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// </summary>
         /// <param name="searchMode">The desired search mode.</param>
         /// <returns>the updated builder.</returns>
-        public ISearchParametersBuilder<TModel> WithSearchMode(SearchMode searchMode)
+        public ISearchOptionsBuilder<TModel> WithSearchMode(SearchMode searchMode)
         {
             this.SearchMode = searchMode;
             return this;
@@ -260,7 +306,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property being selected.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property.</param>
         /// <returns>the updated builder.</returns>
-        public ISearchParametersBuilder<TModel> WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public ISearchOptionsBuilder<TModel> WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
@@ -269,7 +315,7 @@ namespace AzureSearchQueryBuilder.Builders
                 this._select = new List<string>();
             }
 
-            string selectField = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
+            string selectField = PropertyNameUtility.GetPropertyName(lambdaExpression, this.JsonSerializerSettings, false);
             this._select.Add(selectField);
             return this;
         }
@@ -279,7 +325,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// </summary>
         /// <param name="skip">The desired skip value.</param>
         /// <returns>the updated builder.</returns>
-        public ISearchParametersBuilder<TModel> WithSkip(int? skip)
+        public ISearchOptionsBuilder<TModel> WithSkip(int? skip)
         {
             this.Skip = skip;
             return this;
@@ -291,13 +337,13 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property to be ordered by.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property from each element.</param>
         /// <returns>the updated builder.</returns>
-        public IOrderedSearchParametersBuilder<TModel> WithThenBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public IOrderedSearchOptionsBuilder<TModel> WithThenBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
-            if (this._orderBy == null || this._orderBy.Count < 1) throw new ArgumentException($"{nameof(ISuggestParametersBuilder<TModel>.OrderBy)} has not been initialized", nameof(lambdaExpression));
-            if (this._orderBy.Count >= 32) throw new ArgumentException($"{nameof(ISuggestParametersBuilder<TModel>.OrderBy)} has exceeded the maximum 32 clauses", nameof(lambdaExpression));
+            if (this._orderBy == null || this._orderBy.Count < 1) throw new ArgumentException($"{nameof(ISuggestOptionsBuilder<TModel>.OrderBy)} has not been initialized", nameof(lambdaExpression));
+            if (this._orderBy.Count >= 32) throw new ArgumentException($"{nameof(ISuggestOptionsBuilder<TModel>.OrderBy)} has exceeded the maximum 32 clauses", nameof(lambdaExpression));
 
-            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
+            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, this.JsonSerializerSettings, false);
             this._orderBy.Add($"{orderBy} asc");
             return this;
         }
@@ -308,146 +354,146 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property to be ordered by.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property from each element.</param>
         /// <returns>the updated builder.</returns>
-        public IOrderedSearchParametersBuilder<TModel> WithThenByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public IOrderedSearchOptionsBuilder<TModel> WithThenByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
-            if (this._orderBy == null || this._orderBy.Count < 1) throw new ArgumentException($"{nameof(ISuggestParametersBuilder<TModel>.OrderBy)} has not been initialized", nameof(lambdaExpression));
-            if (this._orderBy.Count >= 32) throw new ArgumentException($"{nameof(ISuggestParametersBuilder<TModel>.OrderBy)} has exceeded the maximum 32 clauses", nameof(lambdaExpression));
+            if (this._orderBy == null || this._orderBy.Count < 1) throw new ArgumentException($"{nameof(ISuggestOptionsBuilder<TModel>.OrderBy)} has not been initialized", nameof(lambdaExpression));
+            if (this._orderBy.Count >= 32) throw new ArgumentException($"{nameof(ISuggestOptionsBuilder<TModel>.OrderBy)} has exceeded the maximum 32 clauses", nameof(lambdaExpression));
 
-            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
+            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, this.JsonSerializerSettings, false);
             this._orderBy.Add($"{orderBy} desc");
             return this;
         }
 
-        #region IOrderedSearchParametersBuilder Explicit Implementation
+        #region IOrderedSearchOptionsBuilder Explicit Implementation
 
-        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithFacet<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        IOrderedSearchOptionsBuilder<TModel> IOrderedSearchOptionsBuilder<TModel>.WithFacet<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             this.WithFacet(lambdaExpression);
             return this;
         }
 
-        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithHighlightField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        IOrderedSearchOptionsBuilder<TModel> IOrderedSearchOptionsBuilder<TModel>.WithHighlightField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             this.WithHighlightField(lambdaExpression);
             return this;
         }
 
-        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithIncludeTotalResultCount(bool includeTotalResultCount)
+        IOrderedSearchOptionsBuilder<TModel> IOrderedSearchOptionsBuilder<TModel>.WithIncludeTotalCount(bool includeTotalCount)
         {
-            this.WithIncludeTotalResultCount(includeTotalResultCount);
+            this.WithIncludeTotalCount(includeTotalCount);
             return this;
         }
 
-        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithQueryType(QueryType queryType)
+        IOrderedSearchOptionsBuilder<TModel> IOrderedSearchOptionsBuilder<TModel>.WithQueryType(SearchQueryType queryType)
         {
             this.WithQueryType(queryType);
             return this;
         }
 
-        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithScoringParameter(ScoringParameter scoringParameter)
+        IOrderedSearchOptionsBuilder<TModel> IOrderedSearchOptionsBuilder<TModel>.WithScoringParameter(string scoringParameter)
         {
             this.WithScoringParameter(scoringParameter);
             return this;
         }
 
-        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithScoringProfile(string scoringProfile)
+        IOrderedSearchOptionsBuilder<TModel> IOrderedSearchOptionsBuilder<TModel>.WithScoringProfile(string scoringProfile)
         {
             this.WithScoringProfile(scoringProfile);
             return this;
         }
 
-        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithSearchMode(SearchMode searchMode)
+        IOrderedSearchOptionsBuilder<TModel> IOrderedSearchOptionsBuilder<TModel>.WithSearchMode(SearchMode searchMode)
         {
             this.WithSearchMode(searchMode);
             return this;
         }
 
-        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        IOrderedSearchOptionsBuilder<TModel> IOrderedSearchOptionsBuilder<TModel>.WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             this.WithSelect(lambdaExpression);
             return this;
         }
 
-        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithSkip(int? skip)
+        IOrderedSearchOptionsBuilder<TModel> IOrderedSearchOptionsBuilder<TModel>.WithSkip(int? skip)
         {
             this.WithSkip(skip);
             return this;
         }
 
-        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
+        IOrderedSearchOptionsBuilder<TModel> IOrderedSearchOptionsBuilder<TModel>.Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
         {
             this.Where(lambdaExpression);
             return this;
         }
 
-        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithHighlightPostTag(string highlightPostTag)
+        IOrderedSearchOptionsBuilder<TModel> IOrderedSearchOptionsBuilder<TModel>.WithHighlightPostTag(string highlightPostTag)
         {
             this.WithHighlightPostTag(highlightPostTag);
             return this;
         }
 
-        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithHighlightPreTag(string highlightPreTag)
+        IOrderedSearchOptionsBuilder<TModel> IOrderedSearchOptionsBuilder<TModel>.WithHighlightPreTag(string highlightPreTag)
         {
             this.WithHighlightPreTag(highlightPreTag);
             return this;
         }
 
-        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithMinimumCoverage(double? minimumCoverage)
+        IOrderedSearchOptionsBuilder<TModel> IOrderedSearchOptionsBuilder<TModel>.WithMinimumCoverage(double? minimumCoverage)
         {
             this.WithMinimumCoverage(minimumCoverage);
             return this;
         }
 
-        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        IOrderedSearchOptionsBuilder<TModel> IOrderedSearchOptionsBuilder<TModel>.WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             this.WithSearchField(lambdaExpression);
             return this;
         }
 
-        IOrderedSearchParametersBuilder<TModel> IOrderedSearchParametersBuilder<TModel>.WithTop(int? top)
+        IOrderedSearchOptionsBuilder<TModel> IOrderedSearchOptionsBuilder<TModel>.WithSize(int? size)
         {
-            this.WithTop(top);
+            this.WithSize(size);
             return this;
         }
 
         #endregion
 
-        #region ISearchParametersBuilder Explicit Implementation
+        #region ISearchOptionsBuilder Explicit Implementation
 
-        ISearchParametersBuilder<TModel> ISearchParametersBuilder<TModel>.Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
+        ISearchOptionsBuilder<TModel> ISearchOptionsBuilder<TModel>.Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
         {
             this.Where(lambdaExpression);
             return this;
         }
 
-        ISearchParametersBuilder<TModel> ISearchParametersBuilder<TModel>.WithHighlightPostTag(string highlightPostTag)
+        ISearchOptionsBuilder<TModel> ISearchOptionsBuilder<TModel>.WithHighlightPostTag(string highlightPostTag)
         {
             this.WithHighlightPostTag(highlightPostTag);
             return this;
         }
 
-        ISearchParametersBuilder<TModel> ISearchParametersBuilder<TModel>.WithHighlightPreTag(string highlightPreTag)
+        ISearchOptionsBuilder<TModel> ISearchOptionsBuilder<TModel>.WithHighlightPreTag(string highlightPreTag)
         {
             this.WithHighlightPreTag(highlightPreTag);
             return this;
         }
 
-        ISearchParametersBuilder<TModel> ISearchParametersBuilder<TModel>.WithMinimumCoverage(double? minimumCoverage)
+        ISearchOptionsBuilder<TModel> ISearchOptionsBuilder<TModel>.WithMinimumCoverage(double? minimumCoverage)
         {
             this.WithMinimumCoverage(minimumCoverage);
             return this;
         }
 
-        ISearchParametersBuilder<TModel> ISearchParametersBuilder<TModel>.WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        ISearchOptionsBuilder<TModel> ISearchOptionsBuilder<TModel>.WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             this.WithSearchField(lambdaExpression);
             return this;
         }
 
-        ISearchParametersBuilder<TModel> ISearchParametersBuilder<TModel>.WithTop(int? top)
+        ISearchOptionsBuilder<TModel> ISearchOptionsBuilder<TModel>.WithSize(int? size)
         {
-            this.WithTop(top);
+            this.WithSize(size);
             return this;
         }
 

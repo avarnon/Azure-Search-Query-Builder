@@ -1,32 +1,30 @@
-﻿using System.Collections.Generic;
+﻿using Azure.Search.Documents;
+using Azure.Search.Documents.Models;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace AzureSearchQueryBuilder.Builders
 {
     /// <summary>
-    /// An interface representing an ordered <see cref="SuggestParameters"/> builder.
+    /// An interface representing an <see cref="AutocompleteOptions"/> builder.
     /// </summary>
     /// <typeparam name="TModel">The type of the model representing the search index documents.</typeparam>
-    public interface IOrderedSuggestParametersBuilder<TModel> : IOrderlessSuggestParametersBuilder<TModel>
+    public interface IAutocompleteOptionsBuilder<TModel>
     {
         /// <summary>
-        /// Gets a collection of fields to include in the result set.
+        /// Gets the autocomplete mode.
         /// </summary>
-        IEnumerable<string> Select { get; }
+        /// <remarks>
+        /// * <see cref="AutocompleteMode.OneTerm"/> - Only one term is suggested. If the query has two terms, only the last term is completed.
+        /// * <see cref="AutocompleteMode.TwoTerms"/> - Matching two-term phrases in the index will be suggested.
+        /// * <see cref="AutocompleteMode.OneTermWithContext"/> - Completes the last term in a query with two or more terms, where the last two terms are a phrase that exists in the index.
+        /// </remarks>
+        AutocompleteMode Mode { get; }
 
         /// <summary>
         /// Gets the value indicating that suggestions should be found even if there is a substituted or missing character in the search text.
         /// </summary>
-        bool UseFuzzyMatching { get; }
-
-        /// <summary>
-        /// Gets a list of expressions to sort the results by.
-        /// Each expression can be either a field name or a call to the geo.distance() function.
-        /// Each expression can be followed by asc to indicated ascending, and desc to indicate descending.
-        /// The default is ascending order.
-        /// There is a limit of 32 clauses for $orderby. 
-        /// </summary>
-        IEnumerable<string> OrderBy { get; }
+        bool? UseFuzzyMatching { get; }
 
         /// <summary>
         /// Gets the expression that filters the documents considered for producing the completed term suggestions.
@@ -56,66 +54,55 @@ namespace AzureSearchQueryBuilder.Builders
         /// <summary>
         /// Gets the number of items to retrieve.
         /// </summary>
-        int? Top { get; }
+        int? Size { get; }
 
         /// <summary>
-        /// Adds a property to the collection of fields to include in the result set.
+        /// Sets the autocomplete mode.
         /// </summary>
-        /// <typeparam name="TProperty">The type of the property being selected.</typeparam>
-        /// <param name="lambdaExpression">An expression to extract a property.</param>
+        /// <param name="autocompleteMode">The desired autocomplete mode.</param>
         /// <returns>the updated builder.</returns>
-        IOrderedSuggestParametersBuilder<TModel> WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
+        IAutocompleteOptionsBuilder<TModel> WithMode(AutocompleteMode autocompleteMode);
 
         /// <summary>
         /// Sets the use fuzzy matching value.
         /// </summary>
         /// <param name="useFuzzyMatching">The desired fuzzy matching mode.</param>
         /// <returns>the updated builder.</returns>
-        IOrderedSuggestParametersBuilder<TModel> WithUseFuzzyMatching(bool useFuzzyMatching);
+        IAutocompleteOptionsBuilder<TModel> WithUseFuzzyMatching(bool? useFuzzyMatching);
 
         /// <summary>
-        /// Uses an expression for performing a subsequent ordering of the elements in a sequence in ascending order by using a specified comparer.
+        /// Build an <typeparamref name="AutocompleteOptions"/> object.
         /// </summary>
-        /// <typeparam name="TProperty">The type of the property to be ordered by.</typeparam>
-        /// <param name="lambdaExpression">An expression to extract a property from each element.</param>
-        /// <returns>the updated builder.</returns>
-        IOrderedSuggestParametersBuilder<TModel> WithThenBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
-
-        /// <summary>
-        /// Uses an expression for performing a subsequent ordering of the elements in a sequence in descending order by using a specified comparer.
-        /// </summary>
-        /// <typeparam name="TProperty">The type of the property to be ordered by.</typeparam>
-        /// <param name="lambdaExpression">An expression to extract a property from each element.</param>
-        /// <returns>the updated builder.</returns>
-        IOrderedSuggestParametersBuilder<TModel> WithThenByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
+        /// <returns>the <typeparamref name="AutocompleteOptions"/> object.</returns>
+        AutocompleteOptions Build();
 
         /// <summary>
         /// Adds a where clause to the filter expression.
         /// </summary>
         /// <param name="lambdaExpression">The lambda expression used to generate a filter expression.</param>
         /// <returns>the updated builder.</returns>
-        IOrderedSuggestParametersBuilder<TModel> Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression);
+        IAutocompleteOptionsBuilder<TModel> Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression);
 
         /// <summary>
         /// Sets the string tag that appends to search hits.
         /// </summary>
         /// <param name="highlightPostTag">the desired tag.</param>
         /// <returns>the updated builder.</returns>
-        IOrderedSuggestParametersBuilder<TModel> WithHighlightPostTag(string highlightPostTag);
+        IAutocompleteOptionsBuilder<TModel> WithHighlightPostTag(string highlightPostTag);
 
         /// <summary>
         /// Sets the string tag that prepends to search hits.
         /// </summary>
         /// <param name="highlightPreTag">the desired tag.</param>
         /// <returns>the updated builder.</returns>
-        IOrderedSuggestParametersBuilder<TModel> WithHighlightPreTag(string highlightPreTag);
+        IAutocompleteOptionsBuilder<TModel> WithHighlightPreTag(string highlightPreTag);
 
         /// <summary>
         /// sets a number between 0 and 100 indicating the percentage of the index that must be covered by a query in order for the query to be reported as a success. 
         /// </summary>
         /// <param name="minimumCoverage">The desired minimum coverage.</param>
         /// <returns>the updated builder.</returns>
-        IOrderedSuggestParametersBuilder<TModel> WithMinimumCoverage(double? minimumCoverage);
+        IAutocompleteOptionsBuilder<TModel> WithMinimumCoverage(double? minimumCoverage);
 
         /// <summary>
         /// Appends to the list of field names to search for the specified search text.
@@ -123,13 +110,13 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty"></typeparam>
         /// <param name="lambdaExpression">The lambda expression representing the search field.</param>
         /// <returns>the updated builder.</returns>
-        IOrderedSuggestParametersBuilder<TModel> WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
+        IAutocompleteOptionsBuilder<TModel> WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
 
         /// <summary>
         /// Sets the number of items to retrieve. 
         /// </summary>
         /// <param name="top">The desired top value.</param>
         /// <returns>the updated builder.</returns>
-        IOrderedSuggestParametersBuilder<TModel> WithTop(int? top);
+        IAutocompleteOptionsBuilder<TModel> WithSize(int? size);
     }
 }

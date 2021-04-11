@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Azure.Search.Documents;
 using AzureSearchQueryBuilder.Helpers;
-using Microsoft.Azure.Search.Models;
+using Newtonsoft.Json;
 
 namespace AzureSearchQueryBuilder.Builders
 {
     /// <summary>
-    /// The <see cref="SuggestParametersBuilder"/>`1[<typeparamref name="TModel"/>] builder.
+    /// The <see cref="SuggestOptionsBuilder"/>`1[<typeparamref name="TModel"/>] builder.
     /// </summary>
     /// <typeparam name="TModel">The type of the model representing the search index documents.</typeparam>
-    public class SuggestParametersBuilder<TModel> : ParametersBuilder<TModel, SuggestParameters>, ISuggestParametersBuilder<TModel>, IOrderedSuggestParametersBuilder<TModel>
+    public class SuggestOptionsBuilder<TModel> : OptionsBuilder<TModel, SuggestOptions>, ISuggestOptionsBuilder<TModel>, IOrderedSuggestOptionsBuilder<TModel>
     {
         private IList<string> _orderBy;
         private IList<string> _select;
@@ -19,7 +20,8 @@ namespace AzureSearchQueryBuilder.Builders
         /// <summary>
         /// Constructor.
         /// </summary>
-        private SuggestParametersBuilder()
+        private SuggestOptionsBuilder(JsonSerializerSettings jsonSerializerSettings)
+            : base(jsonSerializerSettings)
         {
         }
 
@@ -43,29 +45,52 @@ namespace AzureSearchQueryBuilder.Builders
         public bool UseFuzzyMatching { get; private set; }
 
         /// <summary>
-        /// Create a new <see cref="ISuggestParametersBuilder" />`1[<typeparamref name="TModel"/>]"/>.
+        /// Create a new <see cref="ISuggestOptionsBuilder" />`1[<typeparamref name="TModel"/>]"/>.
         /// </summary>
-        /// <returns>a new <see cref="ISuggestParametersBuilder" />`1[<typeparamref name="TModel"/>]"/>.</returns>
-        public static ISuggestParametersBuilder<TModel> Create() => new SuggestParametersBuilder<TModel>();
+        /// <returns>a new <see cref="ISuggestOptionsBuilder" />`1[<typeparamref name="TModel"/>]"/>.</returns>
+        public static ISuggestOptionsBuilder<TModel> Create(JsonSerializerSettings jsonSerializerSettings) => new SuggestOptionsBuilder<TModel>(jsonSerializerSettings);
 
         /// <summary>
-        /// Build a <see cref="SuggestParameters"/> object.
+        /// Build a <see cref="SuggestOptions"/> object.
         /// </summary>
-        /// <returns>the <see cref="SuggestParameters"/> object.</returns>
-        public override SuggestParameters Build()
+        /// <returns>the <see cref="SuggestOptions"/> object.</returns>
+        public override SuggestOptions Build()
         {
-            return new SuggestParameters()
+            SuggestOptions suggestOptions = new SuggestOptions()
             {
                 Filter = this.Filter,
                 HighlightPostTag = this.HighlightPostTag,
                 HighlightPreTag = this.HighlightPreTag,
                 MinimumCoverage = this.MinimumCoverage,
-                OrderBy = this.OrderBy?.ToList(),
-                SearchFields = this.SearchFields?.ToList(),
-                Select = this.Select?.ToList(),
-                Top = this.Top,
+                Size = this.Size,
                 UseFuzzyMatching = this.UseFuzzyMatching,
             };
+
+            if (this.OrderBy != null)
+            {
+                foreach (string orderBy in this.OrderBy)
+                {
+                    suggestOptions.OrderBy.Add(orderBy);
+                }
+            }
+
+            if (this.SearchFields != null)
+            {
+                foreach (string searchField in this.SearchFields)
+                {
+                    suggestOptions.SearchFields.Add(searchField);
+                }
+            }
+
+            if (this.Select != null)
+            {
+                foreach (string select in this.Select)
+                {
+                    suggestOptions.Select.Add(select);
+                }
+            }
+
+            return suggestOptions;
         }
 
         /// <summary>
@@ -74,13 +99,13 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property to be ordered by.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property from each element.</param>
         /// <returns>the updated builder.</returns>
-        public IOrderedSuggestParametersBuilder<TModel> WithOrderBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public IOrderedSuggestOptionsBuilder<TModel> WithOrderBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
             this._orderBy = new List<string>();
 
-            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
+            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, this.JsonSerializerSettings, false);
             this._orderBy.Add($"{orderBy} asc");
             return this;
         }
@@ -91,13 +116,13 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property to be ordered by.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property from each element.</param>
         /// <returns>the updated builder.</returns>
-        public IOrderedSuggestParametersBuilder<TModel> WithOrderByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public IOrderedSuggestOptionsBuilder<TModel> WithOrderByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
             this._orderBy = new List<string>();
 
-            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
+            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, this.JsonSerializerSettings, false);
             this._orderBy.Add($"{orderBy} desc");
             return this;
         }
@@ -108,7 +133,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property being selected.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property.</param>
         /// <returns>the updated builder.</returns>
-        public ISuggestParametersBuilder<TModel> WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public ISuggestOptionsBuilder<TModel> WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
@@ -117,7 +142,7 @@ namespace AzureSearchQueryBuilder.Builders
                 this._select = new List<string>();
             }
 
-            string selectField = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
+            string selectField = PropertyNameUtility.GetPropertyName(lambdaExpression, this.JsonSerializerSettings, false);
             this._select.Add(selectField);
             return this;
         }
@@ -128,13 +153,13 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property to be ordered by.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property from each element.</param>
         /// <returns>the updated builder.</returns>
-        public IOrderedSuggestParametersBuilder<TModel> WithThenBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public IOrderedSuggestOptionsBuilder<TModel> WithThenBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
-            if (this._orderBy == null || this._orderBy.Count < 1) throw new ArgumentException($"{nameof(ISuggestParametersBuilder<TModel>.OrderBy)} has not been initialized", nameof(lambdaExpression));
-            if (this._orderBy.Count >= 32) throw new ArgumentException($"{nameof(ISuggestParametersBuilder<TModel>.OrderBy)} has exceeded the maximum 32 clauses", nameof(lambdaExpression));
+            if (this._orderBy == null || this._orderBy.Count < 1) throw new ArgumentException($"{nameof(ISuggestOptionsBuilder<TModel>.OrderBy)} has not been initialized", nameof(lambdaExpression));
+            if (this._orderBy.Count >= 32) throw new ArgumentException($"{nameof(ISuggestOptionsBuilder<TModel>.OrderBy)} has exceeded the maximum 32 clauses", nameof(lambdaExpression));
 
-            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
+            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, this.JsonSerializerSettings, false);
             this._orderBy.Add($"{orderBy} asc");
             return this;
         }
@@ -145,13 +170,13 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property to be ordered by.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property from each element.</param>
         /// <returns>the updated builder.</returns>
-        public IOrderedSuggestParametersBuilder<TModel> WithThenByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public IOrderedSuggestOptionsBuilder<TModel> WithThenByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
-            if (this._orderBy == null || this._orderBy.Count < 1) throw new ArgumentException($"{nameof(ISuggestParametersBuilder<TModel>.OrderBy)} has not been initialized", nameof(lambdaExpression));
-            if (this._orderBy.Count >= 32) throw new ArgumentException($"{nameof(ISuggestParametersBuilder<TModel>.OrderBy)} has exceeded the maximum 32 clauses", nameof(lambdaExpression));
+            if (this._orderBy == null || this._orderBy.Count < 1) throw new ArgumentException($"{nameof(ISuggestOptionsBuilder<TModel>.OrderBy)} has not been initialized", nameof(lambdaExpression));
+            if (this._orderBy.Count >= 32) throw new ArgumentException($"{nameof(ISuggestOptionsBuilder<TModel>.OrderBy)} has exceeded the maximum 32 clauses", nameof(lambdaExpression));
 
-            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
+            string orderBy = PropertyNameUtility.GetPropertyName(lambdaExpression, this.JsonSerializerSettings, false);
             this._orderBy.Add($"{orderBy} desc");
             return this;
         }
@@ -161,99 +186,99 @@ namespace AzureSearchQueryBuilder.Builders
         /// </summary>
         /// <param name="useFuzzyMatching">The desired fuzzy matching mode.</param>
         /// <returns>the updated builder.</returns>
-        public ISuggestParametersBuilder<TModel> WithUseFuzzyMatching(bool useFuzzyMatching)
+        public ISuggestOptionsBuilder<TModel> WithUseFuzzyMatching(bool useFuzzyMatching)
         {
             this.UseFuzzyMatching = useFuzzyMatching;
             return this;
         }
 
-        #region IOrderedSuggestParametersBuilder Explicit Implementation
+        #region IOrderedSuggestOptionsBuilder Explicit Implementation
 
-        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        IOrderedSuggestOptionsBuilder<TModel> IOrderedSuggestOptionsBuilder<TModel>.WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             this.WithSelect(lambdaExpression);
             return this;
         }
 
-        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.WithUseFuzzyMatching(bool useFuzzyMatching)
+        IOrderedSuggestOptionsBuilder<TModel> IOrderedSuggestOptionsBuilder<TModel>.WithUseFuzzyMatching(bool useFuzzyMatching)
         {
             this.WithUseFuzzyMatching(useFuzzyMatching);
             return this;
         }
 
-        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
+        IOrderedSuggestOptionsBuilder<TModel> IOrderedSuggestOptionsBuilder<TModel>.Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
         {
             this.Where(lambdaExpression);
             return this;
         }
 
-        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.WithHighlightPostTag(string highlightPostTag)
+        IOrderedSuggestOptionsBuilder<TModel> IOrderedSuggestOptionsBuilder<TModel>.WithHighlightPostTag(string highlightPostTag)
         {
             this.WithHighlightPostTag(highlightPostTag);
             return this;
         }
 
-        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.WithHighlightPreTag(string highlightPreTag)
+        IOrderedSuggestOptionsBuilder<TModel> IOrderedSuggestOptionsBuilder<TModel>.WithHighlightPreTag(string highlightPreTag)
         {
             this.WithHighlightPreTag(highlightPreTag);
             return this;
         }
 
-        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.WithMinimumCoverage(double? minimumCoverage)
+        IOrderedSuggestOptionsBuilder<TModel> IOrderedSuggestOptionsBuilder<TModel>.WithMinimumCoverage(double? minimumCoverage)
         {
             this.WithMinimumCoverage(minimumCoverage);
             return this;
         }
 
-        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        IOrderedSuggestOptionsBuilder<TModel> IOrderedSuggestOptionsBuilder<TModel>.WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             this.WithSearchField(lambdaExpression);
             return this;
         }
 
-        IOrderedSuggestParametersBuilder<TModel> IOrderedSuggestParametersBuilder<TModel>.WithTop(int? top)
+        IOrderedSuggestOptionsBuilder<TModel> IOrderedSuggestOptionsBuilder<TModel>.WithSize(int? size)
         {
-            this.WithTop(top);
+            this.WithSize(size);
             return this;
         }
 
         #endregion
 
-        #region ISuggestParametersBuilder Explicit Implementation
+        #region ISuggestOptionsBuilder Explicit Implementation
 
-        ISuggestParametersBuilder<TModel> ISuggestParametersBuilder<TModel>.Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
+        ISuggestOptionsBuilder<TModel> ISuggestOptionsBuilder<TModel>.Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
         {
             this.Where(lambdaExpression);
             return this;
         }
 
-        ISuggestParametersBuilder<TModel> ISuggestParametersBuilder<TModel>.WithHighlightPostTag(string highlightPostTag)
+        ISuggestOptionsBuilder<TModel> ISuggestOptionsBuilder<TModel>.WithHighlightPostTag(string highlightPostTag)
         {
             this.WithHighlightPostTag(highlightPostTag);
             return this;
         }
 
-        ISuggestParametersBuilder<TModel> ISuggestParametersBuilder<TModel>.WithHighlightPreTag(string highlightPreTag)
+        ISuggestOptionsBuilder<TModel> ISuggestOptionsBuilder<TModel>.WithHighlightPreTag(string highlightPreTag)
         {
             this.WithHighlightPreTag(highlightPreTag);
             return this;
         }
 
-        ISuggestParametersBuilder<TModel> ISuggestParametersBuilder<TModel>.WithMinimumCoverage(double? minimumCoverage)
+        ISuggestOptionsBuilder<TModel> ISuggestOptionsBuilder<TModel>.WithMinimumCoverage(double? minimumCoverage)
         {
             this.WithMinimumCoverage(minimumCoverage);
             return this;
         }
 
-        ISuggestParametersBuilder<TModel> ISuggestParametersBuilder<TModel>.WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        ISuggestOptionsBuilder<TModel> ISuggestOptionsBuilder<TModel>.WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             this.WithSearchField(lambdaExpression);
             return this;
         }
 
-        ISuggestParametersBuilder<TModel> ISuggestParametersBuilder<TModel>.WithTop(int? top)
+        ISuggestOptionsBuilder<TModel> ISuggestOptionsBuilder<TModel>.WithSize(int? size)
         {
-            this.WithTop(top);
+            this.WithSize(size);
             return this;
         }
 

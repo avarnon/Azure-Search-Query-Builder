@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 
 namespace AzureSearchQueryBuilder.Models
 {
@@ -14,7 +15,7 @@ namespace AzureSearchQueryBuilder.Models
         /// <param name="jsonPropertyName">The name of the property from the <see cref="Newtonsoft.Json.JsonPropertyAttribute"/> if present.</param>
         /// <param name="propertyOrFieldType">The type of the property or field.</param>
         /// <param name="useCamlCase">Should the serialized property name be in CAML case?</param>
-        public PropertyOrFieldInfo(string propertyOrFieldName, string jsonPropertyName, Type propertyOrFieldType, bool useCamlCase)
+        public PropertyOrFieldInfo(string propertyOrFieldName, string jsonPropertyName, Type propertyOrFieldType, JsonSerializerSettings jsonSerializerSettings, bool useCamlCase)
         {
             if (string.IsNullOrWhiteSpace(propertyOrFieldName)) throw new ArgumentNullException(nameof(propertyOrFieldName));
             if (propertyOrFieldType == null) throw new ArgumentNullException(nameof(propertyOrFieldType));
@@ -22,6 +23,7 @@ namespace AzureSearchQueryBuilder.Models
             this.JsonPropertyName = jsonPropertyName;
             this.PropertyOrFieldName = propertyOrFieldName;
             this.PropertyOrFieldType = propertyOrFieldType;
+            JsonSerializerSettings = jsonSerializerSettings;
             this.UseCamlCase = useCamlCase;
         }
 
@@ -29,6 +31,11 @@ namespace AzureSearchQueryBuilder.Models
         /// Gets a value indicating the name of the property or field from reflection.
         /// </summary>
         public string JsonPropertyName { get; }
+
+        /// <summary>
+        /// Gets the JSON Serializer settings.
+        /// </summary>
+        public JsonSerializerSettings JsonSerializerSettings { get; }
 
         /// <summary>
         /// Gets a value indicating the name of the property from the <see cref="Newtonsoft.Json.JsonPropertyAttribute"/> if present.

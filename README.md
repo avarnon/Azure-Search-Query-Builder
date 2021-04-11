@@ -1,18 +1,18 @@
 # Azure-Search-Query-Builder
-This is a library that uses expression tree parsing to build a parameters object for performing search, suggest, and autocomplete actions with the Azure Search .NET SDK.
+This is a library that uses expression tree parsing to build a Options object for performing search, suggest, and autocomplete actions with the Azure Search .NET SDK.
 
 
 
 
 
-## [AutocompleteParametersBuilder](AzureSearchQueryBuilder/Builders/AutocompleteParametersBuilder.cs)\<TModel>
-The [Microsoft.Azure.Search.Models.AutocompleteParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.AutocompleteParameters)\<TModel> builder.
+## [AutocompleteOptionsBuilder](AzureSearchQueryBuilder/Builders/AutocompleteOptionsBuilder.cs)\<TModel>
+The [Azure.Search.Documents.AutocompleteOptions](https://docs.microsoft.com/en-us/dotnet/api/azure.search.documents.AutocompleteOptions)\<TModel> builder.
 > TModel is the class the prepresents a document in the search index.
-### static IAutocompleteParametersBuilder\<TModel> Create()
-Create a new IAutocompleteParametersBuilder\<TModel>.
+### static IAutocompleteOptionsBuilder\<TModel> Create()
+Create a new IAutocompleteOptionsBuilder\<TModel>.
 ### Example using models from [How to use Azure Search from a .NET Application](https://docs.microsoft.com/en-us/azure/search/search-howto-dotnet-sdk#how-the-net-sdk-handles-documents)
 ```C#
-AutocompleteParametersBuilder<Hotel>.Create()
+AutocompleteOptionsBuilder<Hotel>.Create()
   .Where(hotel => hotel.HotelId == "Some ID" || hotel.HotelName == "Some Name")
   .Where(hotel => hotel.ParkingIncluded == true)
   .WithAutocompleteMode(AutocompleteMode.OneTerm)
@@ -21,7 +21,7 @@ AutocompleteParametersBuilder<Hotel>.Create()
   .WithMinimumCoverage(0.75)
   .WithSearchField(hotel => hotel.HotelName)
   .WithSearchField(hotel => hotel.Description)
-  .WithTop(10)
+  .WithSize(10)
   .WithUseFuzzyMatching(true)
   .Build();
 ```
@@ -33,337 +33,337 @@ AutocompleteParametersBuilder<Hotel>.Create()
 | HighlightPreTag  | Pre Tag                                                                              |
 | MinimumCoverage  | 0.75                                                                                 |
 | SearchFields     | HotelName, Description                                                               |
-| Top              | 10                                                                                   |
+| Size              | 10                                                                                   |
 | UseFuzzyMatching | True                                                                                 |
 
 
 
 
-## [IAutocompleteParametersBuilder](AzureSearchQueryBuilder/Builders/IAutocompleteParametersBuilder.cs)\<TModel>
-The [Microsoft.Azure.Search.Models.AutocompleteParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.AutocompleteParameters)\<TModel> builder.
+## [IAutocompleteOptionsBuilder](AzureSearchQueryBuilder/Builders/IAutocompleteOptionsBuilder.cs)\<TModel>
+The [Azure.Search.Documents.AutocompleteOptions](https://docs.microsoft.com/en-us/dotnet/api/azure.search.documents.AutocompleteOptions)\<TModel> builder.
 > TModel is the class the prepresents a document in the search index.
-### AutocompleteParameters Build()
-Build a [Microsoft.Azure.Search.Models.AutocompleteParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.AutocompleteParameters) object.
-### IAutocompleteParametersBuilder\<TModel> WithAutocompleteMode(AutocompleteMode autocompleteMode)
+### AutocompleteOptions Build()
+Build a [Azure.Search.Documents.AutocompleteOptions](https://docs.microsoft.com/en-us/dotnet/api/azure.search.documents.AutocompleteOptions) object.
+### IAutocompleteOptionsBuilder\<TModel> WithAutocompleteMode(AutocompleteMode autocompleteMode)
 Sets the autocomplete mode.
-- autocompleteMode: The desired [Microsoft.Azure.Search.Models.AutocompleteMode](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.AutocompleteMode).
-### IAutocompleteParametersBuilder\<TModel> WithUseFuzzyMatching(bool? useFuzzyMatching)
+- autocompleteMode: The desired [Azure.Search.Documents.AutocompleteMode](https://docs.microsoft.com/en-us/dotnet/api/azure.search.documents.AutocompleteMode).
+### IAutocompleteOptionsBuilder\<TModel> WithUseFuzzyMatching(bool? useFuzzyMatching)
 Sets the use fuzzy matching value.
 - useFuzzyMatching: The desired fuzzy matching mode.
-### IAutocompleteParametersBuilder\<TModel> Where(Expression<BooleanLambdaDelegate\<TModel>> lambdaExpression)
+### IAutocompleteOptionsBuilder\<TModel> Where(Expression<BooleanLambdaDelegate\<TModel>> lambdaExpression)
 Adds a where clause to the filter expression.
 - lambdaExpression: The lambda expression used to generate a filter expression.
 ```C#
 .Where(model => model.Property == value)
 ```
-### IAutocompleteParametersBuilder\<TModel> WithHighlightPostTag(string highlightPostTag)
+### IAutocompleteOptionsBuilder\<TModel> WithHighlightPostTag(string highlightPostTag)
 Sets the string tag that appends to search hits.
 - highlightPostTag: the desired tag.
-### IAutocompleteParametersBuilder\<TModel> WithHighlightPreTag(string highlightPreTag)
+### IAutocompleteOptionsBuilder\<TModel> WithHighlightPreTag(string highlightPreTag)
 Sets the string tag that prepends to search hits.
 - highlightPreTag: the desired tag.
-### IAutocompleteParametersBuilder\<TModel> WithMinimumCoverage(double? minimumCoverage)
+### IAutocompleteOptionsBuilder\<TModel> WithMinimumCoverage(double? minimumCoverage)
 Sets a number between 0 and 100 indicating the percentage of the index that must be covered by a query in order for the query to be reported as a success. 
 - minimumCoverage: The desired minimum coverage.
-### IAutocompleteParametersBuilder\<TModel> WithSearchField\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### IAutocompleteOptionsBuilder\<TModel> WithSearchField\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Appends to the list of field names to search for the specified search text.
 - lambdaExpression: The lambda expression representing the search field.
 ```C#
 .WithSearchField(model => model.Property)
 ```
-### IAutocompleteParametersBuilder\<TModel> WithTop(int? top)
+### IAutocompleteOptionsBuilder\<TModel> WithSize(int? size)
 Sets the number of items to retrieve. 
-- top: The desired top value.
+- size: The desired size value.
 
 
 
 
 
-## [IOrderedSearchParametersBuilder](AzureSearchQueryBuilder/Builders/IOrderedSearchParametersBuilder.cs)\<TModel>
-The [Microsoft.Azure.Search.Models.SearchParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.searchparameters)\<TModel> builder.
+## [IOrderedSearchOptionsBuilder](AzureSearchQueryBuilder/Builders/IOrderedSearchOptionsBuilder.cs)\<TModel>
+The [Azure.Search.Documents.SearchOptions](https://docs.microsoft.com/en-us/dotnet/api/azure.search.documents.searchOptions)\<TModel> builder.
 > TModel is the class the prepresents a document in the search index.
-### SearchParameters Build()
-Build a [Microsoft.Azure.Search.Models.SearchParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.searchparameters) object.
-### IOrderedSearchParametersBuilder\<TModel> WithFacet\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### SearchOptions Build()
+Build a [Azure.Search.Documents.SearchOptions](https://docs.microsoft.com/en-us/dotnet/api/azure.search.documents.searchOptions) object.
+### IOrderedSearchOptionsBuilder\<TModel> WithFacet\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Adds a proprty to the collection of fields to facet by.
 - lambdaExpression: An expression to extract a property.
 ```C#
 .WithFacet(model => model.Property)
 ```
-### IOrderedSearchParametersBuilder\<TModel> WithHighlightField\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### IOrderedSearchOptionsBuilder\<TModel> WithHighlightField\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Adds a property to the collection of field names used for hit highlights.
 - lambdaExpression: An expression to extract a property.
 ```C#
 .WithHighlightField(model => model.Property)
 ```
-### IOrderedSearchParametersBuilder\<TModel> WithIncludeTotalResultCount(bool includeTotalResultCount)
+### IOrderedSearchOptionsBuilder\<TModel> WithIncludeTotalCount(bool includeTotalCount)
 Sets the value indicating whether to fetch the total count of results.
-- includeTotalResultCount: The desired include total results count value.
-### IOrderedSearchParametersBuilder\<TModel> WithQueryType(QueryType queryType)
+- includeTotalCount: The desired include total results count value.
+### IOrderedSearchOptionsBuilder\<TModel> WithQueryType(QueryType queryType)
 Sets a value indicating the query type.
-- queryType: The desired [Microsoft.Azure.Search.Models.QueryType](https://docs.microsoft.com/en-us/dotnet/api/Microsoft.Azure.Search.Models.QueryType).
-### IOrderedSearchParametersBuilder\<TModel> WithScoringParameter(ScoringParameter scoringParameter)
+- queryType: The desired [Azure.Search.Documents.QueryType](https://docs.microsoft.com/en-us/dotnet/api/Azure.Search.Documents.QueryType).
+### IOrderedSearchOptionsBuilder\<TModel> WithScoringParameter(string scoringParameter)
 Sets a value indicating the values for each parameter defined in a scoring function.
-- scoringParameter: The desired additional [Microsoft.Azure.Search.Models.ScoringParameter](https://docs.microsoft.com/en-us/dotnet/api/Microsoft.Azure.Search.Models.ScoringParameter).
-### IOrderedSearchParametersBuilder\<TModel> WithScoringProfile(string scoringProfile)
+- scoringParameter: The desired additional scoring parameter.
+### IOrderedSearchOptionsBuilder\<TModel> WithScoringProfile(string scoringProfile)
 Sets the name of a scoring profile to evaluate match scores for matching documents in order to sort the results.
 - scoringProfile: The desired scoring profile name.
-### IOrderedSearchParametersBuilder\<TModel> WithSearchMode(SearchMode searchMode)
+### IOrderedSearchOptionsBuilder\<TModel> WithSearchMode(SearchMode searchMode)
 Sets a value indicating whether any or all of the search terms must be matched in order to count the document as a match.
-- searchMode: The desired [Microsoft.Azure.Search.Models.SearchMode](https://docs.microsoft.com/en-us/dotnet/api/Microsoft.Azure.Search.Models.SearchMode).
-### IOrderedSearchParametersBuilder\<TModel> WithSelect\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+- searchMode: The desired [Azure.Search.Documents.SearchMode](https://docs.microsoft.com/en-us/dotnet/api/Azure.Search.Documents.SearchMode).
+### IOrderedSearchOptionsBuilder\<TModel> WithSelect\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Adds a property to the collection of fields to include in the result set.
 - lambdaExpression: An expression to extract a property.
 ```C#
 .WithSelect(model => model.Property)
 ```
-### IOrderedSearchParametersBuilder\<TModel> WithSkip(int? skip)
+### IOrderedSearchOptionsBuilder\<TModel> WithSkip(int? skip)
 Sets the number of search results to skip.
 - skip: The desired skip value.
-### IOrderedSearchParametersBuilder\<TModel> WithThenBy\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### IOrderedSearchOptionsBuilder\<TModel> WithThenBy\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Uses an expression for performing a subsequent ordering of the elements in a sequence in ascending order by using a specified comparer.
 - lambdaExpression: An expression to extract a property from each element.
 ```C#
 .WithThenBy(model => model.Property)
 ```
-### IOrderedSearchParametersBuilder\<TModel> WithThenByDescending\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### IOrderedSearchOptionsBuilder\<TModel> WithThenByDescending\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Uses an expression for performing a subsequent ordering of the elements in a sequence in descending order by using a specified comparer.
 - lambdaExpression: An expression to extract a property from each element.
 ```C#
 .WithThenByDescending(model => model.Property)
 ```
-### IOrderedSearchParametersBuilder\<TModel> Where(Expression<BooleanLambdaDelegate\<TModel>> lambdaExpression)
+### IOrderedSearchOptionsBuilder\<TModel> Where(Expression<BooleanLambdaDelegate\<TModel>> lambdaExpression)
 Adds a where clause to the filter expression.
 - lambdaExpression: The lambda expression used to generate a filter expression.
 ```C#
 .Where(model => model.Property == value)
 ```
-### IOrderedSearchParametersBuilder\<TModel> WithHighlightPostTag(string highlightPostTag)
+### IOrderedSearchOptionsBuilder\<TModel> WithHighlightPostTag(string highlightPostTag)
 Sets the string tag that appends to search hits.
 - highlightPostTag: the desired tag.
-### IOrderedSearchParametersBuilder\<TModel> WithHighlightPreTag(string highlightPreTag)
+### IOrderedSearchOptionsBuilder\<TModel> WithHighlightPreTag(string highlightPreTag)
 Sets the string tag that prepends to search hits.
 - highlightPreTag: the desired tag.
-### IOrderedSearchParametersBuilder\<TModel> WithMinimumCoverage(double? minimumCoverage)
+### IOrderedSearchOptionsBuilder\<TModel> WithMinimumCoverage(double? minimumCoverage)
 Sets a number between 0 and 100 indicating the percentage of the index that must be covered by a query in order for the query to be reported as a success. 
 - minimumCoverage: The desired minimum coverage.
-### IOrderedSearchParametersBuilder\<TModel> WithSearchField\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### IOrderedSearchOptionsBuilder\<TModel> WithSearchField\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Appends to the list of field names to search for the specified search text.
 - lambdaExpression: The lambda expression representing the search field.
 ```C#
 .WithSearchField(model => model.Property)
 ```
-### IOrderedSearchParametersBuilder\<TModel> WithTop(int? top)
+### IOrderedSearchOptionsBuilder\<TModel> WithSize(int? size)
 Sets the number of items to retrieve. 
-- top: The desired top value.
+- size: The desired size value.
 
 
 
 
 
-## [IOrderedSuggestParametersBuilder](AzureSearchQueryBuilder/Builders/IOrderedSuggestParametersBuilder.cs)\<TModel>
-The [Microsoft.Azure.Search.Models.SuggestParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.SuggestParameters)\<TModel> builder.
+## [IOrderedSuggestOptionsBuilder](AzureSearchQueryBuilder/Builders/IOrderedSuggestOptionsBuilder.cs)\<TModel>
+The [Azure.Search.Documents.SuggestOptions](https://docs.microsoft.com/en-us/dotnet/api/azure.search.documents.SuggestOptions)\<TModel> builder.
 > TModel is the class the prepresents a document in the search index.
-### SuggestParameters Build()
-Build a [Microsoft.Azure.Search.Models.SuggestParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.SuggestParameters) object.
-### ISuggestParametersBuilder\<TModel> WithSelect\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### SuggestOptions Build()
+Build a [Azure.Search.Documents.SuggestOptions](https://docs.microsoft.com/en-us/dotnet/api/azure.search.documents.SuggestOptions) object.
+### ISuggestOptionsBuilder\<TModel> WithSelect\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Adds a property to the collection of fields to include in the result set.
 - lambdaExpression: An expression to extract a property.
 ```C#
 .WithSelect(model => model.Property)
 ```
-### IOrderedSuggestParametersBuilder\<TModel> WithThenBy\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### IOrderedSuggestOptionsBuilder\<TModel> WithThenBy\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Uses an expression for performing a subsequent ordering of the elements in a sequence in ascending order by using a specified comparer.
 - lambdaExpression: An expression to extract a property from each element.
 ```C#
 .WithThenBy(model => model.Property)
 ```
-### IOrderedSuggestParametersBuilder\<TModel> WithThenByDescending\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### IOrderedSuggestOptionsBuilder\<TModel> WithThenByDescending\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Uses an expression for performing a subsequent ordering of the elements in a sequence in descending order by using a specified comparer.
 - lambdaExpression: An expression to extract a property from each element.
 ```C#
 .WithThenByDescending(model => model.Property)
 ```
-### IOrderedSuggestParametersBuilder\<TModel> WithUseFuzzyMatching(bool useFuzzyMatching)
+### IOrderedSuggestOptionsBuilder\<TModel> WithUseFuzzyMatching(bool useFuzzyMatching)
 Sets the use fuzzy matching value.
 - useFuzzyMatching: The desired fuzzy matching mode.
-### IOrderedSuggestParametersBuilder\<TModel> Where(Expression<BooleanLambdaDelegate\<TModel>> lambdaExpression)
+### IOrderedSuggestOptionsBuilder\<TModel> Where(Expression<BooleanLambdaDelegate\<TModel>> lambdaExpression)
 Adds a where clause to the filter expression.
 - lambdaExpression: The lambda expression used to generate a filter expression.
 ```C#
 .Where(model => model.Property == value)
 ```
-### IOrderedSuggestParametersBuilder\<TModel> WithHighlightPostTag(string highlightPostTag)
+### IOrderedSuggestOptionsBuilder\<TModel> WithHighlightPostTag(string highlightPostTag)
 Sets the string tag that appends to search hits.
 - highlightPostTag: the desired tag.
-### IOrderedSuggestParametersBuilder\<TModel> WithHighlightPreTag(string highlightPreTag)
+### IOrderedSuggestOptionsBuilder\<TModel> WithHighlightPreTag(string highlightPreTag)
 Sets the string tag that prepends to search hits.
 - highlightPreTag: the desired tag.
-### IOrderedSuggestParametersBuilder\<TModel> WithMinimumCoverage(double? minimumCoverage)
+### IOrderedSuggestOptionsBuilder\<TModel> WithMinimumCoverage(double? minimumCoverage)
 Sets a number between 0 and 100 indicating the percentage of the index that must be covered by a query in order for the query to be reported as a success. 
 - minimumCoverage: The desired minimum coverage.
-### IOrderedSuggestParametersBuilder\<TModel> WithSearchField\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### IOrderedSuggestOptionsBuilder\<TModel> WithSearchField\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Appends to the list of field names to search for the specified search text.
 - lambdaExpression: The lambda expression representing the search field.
 ```C#
 .WithSearchField(model => model.Property)
 ```
-### IOrderedSuggestParametersBuilder\<TModel> WithTop(int? top)
+### IOrderedSuggestOptionsBuilder\<TModel> WithSize(int? size)
 Sets the number of items to retrieve. 
-- top: The desired top value.
+- size: The desired size value.
 
 
 
 
 
-## [ISearchParametersBuilder](AzureSearchQueryBuilder/Builders/ISearchParametersBuilder.cs)\<TModel>
-The [Microsoft.Azure.Search.Models.SearchParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.searchparameters)\<TModel> builder.
+## [ISearchOptionsBuilder](AzureSearchQueryBuilder/Builders/ISearchOptionsBuilder.cs)\<TModel>
+The [Azure.Search.Documents.SearchOptions](https://docs.microsoft.com/en-us/dotnet/api/azure.search.documents.searchOptions)\<TModel> builder.
 > TModel is the class the prepresents a document in the search index.
-### SearchParameters Build()
-Build a [Microsoft.Azure.Search.Models.SearchParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.searchparameters) object.
-### ISearchParametersBuilder\<TModel> WithFacet\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### SearchOptions Build()
+Build a [Azure.Search.Documents.SearchOptions](https://docs.microsoft.com/en-us/dotnet/api/azure.search.documents.searchOptions) object.
+### ISearchOptionsBuilder\<TModel> WithFacet\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Adds a proprty to the collection of fields to facet by.
 - lambdaExpression: An expression to extract a property.
 ```C#
 .WithFacet(model => model.Property)
 ```
-### ISearchParametersBuilder\<TModel> WithHighlightField\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### ISearchOptionsBuilder\<TModel> WithHighlightField\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Adds a property to the collection of field names used for hit highlights.
 - lambdaExpression: An expression to extract a property.
 ```C#
 .WithHighlightField(model => model.Property)
 ```
-### ISearchParametersBuilder\<TModel> WithIncludeTotalResultCount(bool includeTotalResultCount)
+### ISearchOptionsBuilder\<TModel> WithIncludeTotalCount(bool includeTotalCount)
 Sets the value indicating whether to fetch the total count of results.
-- includeTotalResultCount: The desired include total results count value.
-### IOrderedSearchParametersBuilder\<TModel> WithOrderBy\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+- includeTotalCount: The desired include total results count value.
+### IOrderedSearchOptionsBuilder\<TModel> WithOrderBy\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Uses an expression for sorting the elements of a sequence in ascending order using a specified comparer.
 - lambdaExpression: An expression to extract a property from each element.
 ```C#
 .WithOrderBy(model => model.Property)
 ```
-### IOrderedSearchParametersBuilder\<TModel> WithOrderByDescending\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### IOrderedSearchOptionsBuilder\<TModel> WithOrderByDescending\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Uses an expression for sorting the elements of a sequence in descending order using a specified comparer.
 - lambdaExpression: An expression to extract a property from each element.
 ```C#
 .WithOrderByDescending(model => model.Property)
 ```
-### ISearchParametersBuilder\<TModel> WithQueryType(QueryType queryType)
+### ISearchOptionsBuilder\<TModel> WithQueryType(QueryType queryType)
 Sets a value indicating the query type.
-- queryType: The desired [Microsoft.Azure.Search.Models.QueryType](https://docs.microsoft.com/en-us/dotnet/api/Microsoft.Azure.Search.Models.QueryType).
-### ISearchParametersBuilder\<TModel> WithScoringParameter(ScoringParameter scoringParameter)
+- queryType: The desired [Azure.Search.Documents.QueryType](https://docs.microsoft.com/en-us/dotnet/api/Azure.Search.Documents.QueryType).
+### ISearchOptionsBuilder\<TModel> WithScoringParameter(string scoringParameter)
 Sets a value indicating the values for each parameter defined in a scoring function.
-- scoringParameter: The desired additional [Microsoft.Azure.Search.Models.ScoringParameter](https://docs.microsoft.com/en-us/dotnet/api/Microsoft.Azure.Search.Models.ScoringParameter).
-### ISearchParametersBuilder\<TModel> WithScoringProfile(string scoringProfile)
+- scoringParameter: The desired additional scoring parameter.
+### ISearchOptionsBuilder\<TModel> WithScoringProfile(string scoringProfile)
 Sets the name of a scoring profile to evaluate match scores for matching documents in order to sort the results.
 - scoringProfile: The desired scoring profile name.
-### ISearchParametersBuilder\<TModel> WithSearchMode(SearchMode searchMode)
+### ISearchOptionsBuilder\<TModel> WithSearchMode(SearchMode searchMode)
 Sets a value indicating whether any or all of the search terms must be matched in order to count the document as a match.
-- searchMode: The desired [Microsoft.Azure.Search.Models.SearchMode](https://docs.microsoft.com/en-us/dotnet/api/Microsoft.Azure.Search.Models.SearchMode).
-### ISearchParametersBuilder\<TModel> WithSelect\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+- searchMode: The desired [Azure.Search.Documents.SearchMode](https://docs.microsoft.com/en-us/dotnet/api/Azure.Search.Documents.SearchMode).
+### ISearchOptionsBuilder\<TModel> WithSelect\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Adds a property to the collection of fields to include in the result set.
 - lambdaExpression: An expression to extract a property.
 ```C#
 .WithSelect(model => model.Property)
 ```
-### ISearchParametersBuilder\<TModel> WithSkip(int? skip)
+### ISearchOptionsBuilder\<TModel> WithSkip(int? skip)
 Sets the number of search results to skip.
 - skip: The desired skip value.rom each element.
 ```C#
 .WithThenByDescending(model => model.Property)
 ```
-### ISearchParametersBuilder\<TModel> Where(Expression<BooleanLambdaDelegate\<TModel>> lambdaExpression)
+### ISearchOptionsBuilder\<TModel> Where(Expression<BooleanLambdaDelegate\<TModel>> lambdaExpression)
 Adds a where clause to the filter expression.
 - lambdaExpression: The lambda expression used to generate a filter expression.
 ```C#
 .Where(model => model.Property == value)
 ```
-### ISearchParametersBuilder\<TModel> WithHighlightPostTag(string highlightPostTag)
+### ISearchOptionsBuilder\<TModel> WithHighlightPostTag(string highlightPostTag)
 Sets the string tag that appends to search hits.
 - highlightPostTag: the desired tag.
-### ISearchParametersBuilder\<TModel> WithHighlightPreTag(string highlightPreTag)
+### ISearchOptionsBuilder\<TModel> WithHighlightPreTag(string highlightPreTag)
 Sets the string tag that prepends to search hits.
 - highlightPreTag: the desired tag.
-### ISearchParametersBuilder\<TModel> WithMinimumCoverage(double? minimumCoverage)
+### ISearchOptionsBuilder\<TModel> WithMinimumCoverage(double? minimumCoverage)
 Sets a number between 0 and 100 indicating the percentage of the index that must be covered by a query in order for the query to be reported as a success. 
 - minimumCoverage: The desired minimum coverage.
-### ISearchParametersBuilder\<TModel> WithSearchField\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### ISearchOptionsBuilder\<TModel> WithSearchField\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Appends to the list of field names to search for the specified search text.
 - lambdaExpression: The lambda expression representing the search field.
 ```C#
 .WithSearchField(model => model.Property)
 ```
-### ISearchParametersBuilder\<TModel> WithTop(int? top)
+### ISearchOptionsBuilder\<TModel> WithSize(int? size)
 Sets the number of items to retrieve. 
-- top: The desired top value.
+- size: The desired size value.
 
 
 
 
 
-## [ISuggestParametersBuilder](AzureSearchQueryBuilder/Builders/ISuggestParametersBuilder.cs)\<TModel>
-The [Microsoft.Azure.Search.Models.SuggestParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.SuggestParameters)\<TModel> builder.
+## [ISuggestOptionsBuilder](AzureSearchQueryBuilder/Builders/ISuggestOptionsBuilder.cs)\<TModel>
+The [Azure.Search.Documents.SuggestOptions](https://docs.microsoft.com/en-us/dotnet/api/azure.search.documents.SuggestOptions)\<TModel> builder.
 > TModel is the class the prepresents a document in the search index.
-### SuggestParameters Build()
-Build a [Microsoft.Azure.Search.Models.SuggestParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.SuggestParameters) object.
-### IOrderedSuggestParametersBuilder\<TModel> WithOrderBy\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### SuggestOptions Build()
+Build a [Azure.Search.Documents.SuggestOptions](https://docs.microsoft.com/en-us/dotnet/api/azure.search.documents.SuggestOptions) object.
+### IOrderedSuggestOptionsBuilder\<TModel> WithOrderBy\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Uses an expression for sorting the elements of a sequence in ascending order using a specified comparer.
 - lambdaExpression: An expression to extract a property from each element.
 ```C#
 .WithOrderBy(model => model.Property)
 ```
-### IOrderedSuggestParametersBuilder\<TModel> WithOrderByDescending\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### IOrderedSuggestOptionsBuilder\<TModel> WithOrderByDescending\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Uses an expression for sorting the elements of a sequence in descending order using a specified comparer.
 - lambdaExpression: An expression to extract a property from each element.
 ```C#
 .WithOrderByDescending(model => model.Property)
 ```
-### ISuggestParametersBuilder\<TModel> WithSelect\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### ISuggestOptionsBuilder\<TModel> WithSelect\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Adds a property to the collection of fields to include in the result set.
 - lambdaExpression: An expression to extract a property.
 ```C#
 .WithSelect(model => model.Property)
 ```
-### ISuggestParametersBuilder\<TModel> WithUseFuzzyMatching(bool useFuzzyMatching)
+### ISuggestOptionsBuilder\<TModel> WithUseFuzzyMatching(bool useFuzzyMatching)
 Sets the use fuzzy matching value.
 - useFuzzyMatching: The desired fuzzy matching mode.
-### ISuggestParametersBuilder\<TModel> Where(Expression<BooleanLambdaDelegate\<TModel>> lambdaExpression)
+### ISuggestOptionsBuilder\<TModel> Where(Expression<BooleanLambdaDelegate\<TModel>> lambdaExpression)
 Adds a where clause to the filter expression.
 - lambdaExpression: The lambda expression used to generate a filter expression.
 ```C#
 .Where(model => model.Property == value)
 ```
-### ISuggestParametersBuilder\<TModel> WithHighlightPostTag(string highlightPostTag)
+### ISuggestOptionsBuilder\<TModel> WithHighlightPostTag(string highlightPostTag)
 Sets the string tag that appends to search hits.
 - highlightPostTag: the desired tag.
-### ISuggestParametersBuilder\<TModel> WithHighlightPreTag(string highlightPreTag)
+### ISuggestOptionsBuilder\<TModel> WithHighlightPreTag(string highlightPreTag)
 Sets the string tag that prepends to search hits.
 - highlightPreTag: the desired tag.
-### ISuggestParametersBuilder\<TModel> WithMinimumCoverage(double? minimumCoverage)
+### ISuggestOptionsBuilder\<TModel> WithMinimumCoverage(double? minimumCoverage)
 Sets a number between 0 and 100 indicating the percentage of the index that must be covered by a query in order for the query to be reported as a success. 
 - minimumCoverage: The desired minimum coverage.
-### ISuggestParametersBuilder\<TModel> WithSearchField\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+### ISuggestOptionsBuilder\<TModel> WithSearchField\<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
 Appends to the list of field names to search for the specified search text.
 - lambdaExpression: The lambda expression representing the search field.
 ```C#
 .WithSearchField(model => model.Property)
 ```
-### ISuggestParametersBuilder\<TModel> WithTop(int? top)
+### ISuggestOptionsBuilder\<TModel> WithSize(int? size)
 Sets the number of items to retrieve. 
-- top: The desired top value.
+- size: The desired size value.
 
 
 
 
 
-## [SearchParametersBuilder](AzureSearchQueryBuilder/Builders/SearchParametersBuilder.cs)\<TModel>
-The [Microsoft.Azure.Search.Models.SearchParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.searchparameters)\<TModel> builder.
+## [SearchOptionsBuilder](AzureSearchQueryBuilder/Builders/SearchOptionsBuilder.cs)\<TModel>
+The [Azure.Search.Documents.SearchOptions](https://docs.microsoft.com/en-us/dotnet/api/azure.search.documents.searchOptions)\<TModel> builder.
 > TModel is the class the prepresents a document in the search index.
-### static ISearchParametersBuilder\<TModel> Create()
-Create a new ISearchParametersBuilder\<TModel>.
+### static ISearchOptionsBuilder\<TModel> Create()
+Create a new ISearchOptionsBuilder\<TModel>.
 ### Example using models from [How to use Azure Search from a .NET Application](https://docs.microsoft.com/en-us/azure/search/search-howto-dotnet-sdk#how-the-net-sdk-handles-documents)
 ```C#
-SearchParametersBuilder<Hotel>.Create()
+SearchOptionsBuilder<Hotel>.Create()
   .Where(hotel => hotel.HotelId == "Some ID" || hotel.HotelName == "Some Name")
   .Where(hotel => hotel.ParkingIncluded == true)
   .WithFacet(hotel => hotel.Address.City)
@@ -372,7 +372,7 @@ SearchParametersBuilder<Hotel>.Create()
   .WithHighlightField(hotel => hotel.Rating)
   .WithHighlightPostTag("Post Tag")
   .WithHighlightPreTag("Pre Tag")
-  .WithIncludeTotalResultCount(true)
+  .WithIncludeTotalCount(true)
   .WithMinimumCoverage(0.75)
   .WithOrderBy(hotel => hotel.HotelName)
   .WithQueryType(QueryType.Full)
@@ -386,7 +386,7 @@ SearchParametersBuilder<Hotel>.Create()
   .WithSelect(hotel => hotel.Address.Country)
   .WithSkip(20)
   .WithThenByDescending(hotel => hotel.LastRenovationDate)
-  .WithTop(10)
+  .WithSize(10)
   .Build();
 ```
 | Property                 | Value                                                                                |
@@ -396,7 +396,7 @@ SearchParametersBuilder<Hotel>.Create()
 | HighlightFields          | Category, Rating                                                                     |
 | HighlightPostTag         | Post Tag                                                                             |
 | HighlightPreTag          | Pre Tag                                                                              |
-| IncludeTotalResultCount  | True                                                                                 |
+| IncludeTotalCount        | True                                                                                 |
 | MinimumCoverage          | 0.75                                                                                 |
 | OrderBy                  | HotelName asc, LastRenovationDate desc                                               |
 | QueryType                | Full                                                                                 |
@@ -406,20 +406,20 @@ SearchParametersBuilder<Hotel>.Create()
 | SearchMode               | Any                                                                                  |
 | Select                   | HotelName, Address/Country                                                           |
 | Skip                     | 20                                                                                   |
-| Top                      | 10                                                                                   |
+| Size                      | 10                                                                                   |
 
 
 
 
 
-## [SuggestParametersBuilder](AzureSearchQueryBuilder/Builders/SuggestParametersBuilder.cs)\<TModel>
-The [Microsoft.Azure.Search.Models.SuggestParameters](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.search.models.SuggestParameters)\<TModel> builder.
+## [SuggestOptionsBuilder](AzureSearchQueryBuilder/Builders/SuggestOptionsBuilder.cs)\<TModel>
+The [Azure.Search.Documents.SuggestOptions](https://docs.microsoft.com/en-us/dotnet/api/azure.search.documents.SuggestOptions)\<TModel> builder.
 > TModel is the class the prepresents a document in the search index.
-### static ISuggestParametersBuilder\<TModel> Create()
-Create a new ISuggestParametersBuilder\<TModel>.
+### static ISuggestOptionsBuilder\<TModel> Create()
+Create a new ISuggestOptionsBuilder\<TModel>.
 ### Example using models from [How to use Azure Search from a .NET Application](https://docs.microsoft.com/en-us/azure/search/search-howto-dotnet-sdk#how-the-net-sdk-handles-documents)
 ```C#
-SuggestParametersBuilder<Hotel>.Create()
+SuggestOptionsBuilder<Hotel>.Create()
   .WithHighlightPostTag("Post Tag")
   .WithHighlightPreTag("Pre Tag")
   .WithMinimumCoverage(0.75)
@@ -429,7 +429,7 @@ SuggestParametersBuilder<Hotel>.Create()
   .WithSelect(hotel => hotel.HotelName)
   .WithSelect(hotel => hotel.Address.Country)
   .WithThenByDescending(hotel => hotel.LastRenovationDate)
-  .WithTop(10)
+  .WithSize(10)
   .WithUseFuzzyMatching(true)
   .Where(hotel => hotel.HotelId == "Some ID" || hotel.HotelName == "Some Name")
   .Where(hotel => hotel.ParkingIncluded == true)
@@ -444,7 +444,7 @@ SuggestParametersBuilder<Hotel>.Create()
 | OrderBy          | HotelName asc, LastRenovationDate desc                                               |
 | SearchFields     | HotelName, Description                                                               |
 | Select           | HotelName, Address/Country                                                           |
-| Top              | 10                                                                                   |
+| Size              | 10                                                                                   |
 | UseFuzzyMatching | True                                                                                 |
 
 
@@ -454,7 +454,7 @@ SuggestParametersBuilder<Hotel>.Create()
 ## [SearchFns](AzureSearchQueryBuilder/Builders/SearchFns.cs)
 SearchFns provides access to search.in, search.ismatch, search.ismatchscoring, and search.score functions from the builder interfaces.
 ```C#
-SuggestParametersBuilder<Hotel>.Create()
+SuggestOptionsBuilder<Hotel>.Create()
   .WithOrderBy(hotel => hotel.HotelName)
   .WithThenByBy(hotel => SearchFns.Score())
   .Where(hotel => hotel.HotelId == "Some ID" || hotel.HotelName == "Some Name")

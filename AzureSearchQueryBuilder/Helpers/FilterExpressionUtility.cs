@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using AzureSearchQueryBuilder.Builders;
-using Microsoft.Azure.Search.Models;
+using Newtonsoft.Json;
 
 namespace AzureSearchQueryBuilder.Helpers
 {
@@ -17,11 +17,11 @@ namespace AzureSearchQueryBuilder.Helpers
         /// </summary>
         /// <param name="lambdaExpression">The expression from which to parse the OData filter.</param>
         /// <returns>the OData filter.</returns>
-        public static string GetFilterExpression(LambdaExpression lambdaExpression)
+        public static string GetFilterExpression(LambdaExpression lambdaExpression, JsonSerializerSettings jsonSerializerSettings)
         {
             if (lambdaExpression == null || lambdaExpression.Body == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
-            return GetFilterExpression(lambdaExpression.Body);
+            return GetFilterExpression(lambdaExpression.Body, jsonSerializerSettings);
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace AzureSearchQueryBuilder.Helpers
         /// </summary>
         /// <param name="expression">The expression from which to parse the OData filter.</param>
         /// <returns>the OData filter.</returns>
-        public static string GetFilterExpression(Expression expression)
+        public static string GetFilterExpression(Expression expression, JsonSerializerSettings jsonSerializerSettings)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
@@ -45,7 +45,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         BinaryExpression binaryExpression = expression as BinaryExpression;
                         if (binaryExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(BinaryExpression)}\r\n\t{expression}", nameof(expression));
 
-                        return GetFilterExpression(binaryExpression);
+                        return GetFilterExpression(binaryExpression, jsonSerializerSettings);
                     }
 
                 case ExpressionType.IsFalse:
@@ -55,7 +55,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         UnaryExpression unaryExpression = expression as UnaryExpression;
                         if (unaryExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(UnaryExpression)}\r\n\t{expression}", nameof(expression));
 
-                        return GetFilterExpression(unaryExpression);
+                        return GetFilterExpression(unaryExpression, jsonSerializerSettings);
                     }
 
                 case ExpressionType.MemberAccess:
@@ -63,7 +63,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         MemberExpression memberExpression = expression as MemberExpression;
                         if (memberExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(MemberExpression)}\r\n\t{expression}", nameof(expression));
 
-                        return PropertyNameUtility.GetPropertyName(memberExpression, false);
+                        return PropertyNameUtility.GetPropertyName(memberExpression, jsonSerializerSettings, false);
                     }
 
                 case ExpressionType.Call:
@@ -77,25 +77,25 @@ namespace AzureSearchQueryBuilder.Helpers
                             {
                                 case nameof(SearchFns.IsMatch):
                                     {
-                                        string search = methodCallExpression.Arguments[0].GetValue() as string;
+                                        string search = methodCallExpression.Arguments[0].GetValue(jsonSerializerSettings) as string;
                                         NewArrayExpression searchFieldsNewArrayExpression = methodCallExpression.Arguments[1] as NewArrayExpression;
-                                        IEnumerable<string> searchFields = searchFieldsNewArrayExpression.Expressions.Select(_ => PropertyNameUtility.GetPropertyName(_, false).ToString()).ToArray();
+                                        IEnumerable<string> searchFields = searchFieldsNewArrayExpression.Expressions.Select(_ => PropertyNameUtility.GetPropertyName(_, jsonSerializerSettings, false).ToString()).ToArray();
                                         return $"search.ismatch('{search}', '{string.Join(", ", searchFields)}')";
                                     }
 
                                 case nameof(SearchFns.IsMatchScoring):
                                     {
-                                        string search = methodCallExpression.Arguments[0].GetValue() as string;
+                                        string search = methodCallExpression.Arguments[0].GetValue(jsonSerializerSettings) as string;
                                         NewArrayExpression searchFieldsNewArrayExpression = methodCallExpression.Arguments[1] as NewArrayExpression;
-                                        IEnumerable<string> searchFields = searchFieldsNewArrayExpression.Expressions.Select(_ => PropertyNameUtility.GetPropertyName(_, false).ToString()).ToArray();
+                                        IEnumerable<string> searchFields = searchFieldsNewArrayExpression.Expressions.Select(_ => PropertyNameUtility.GetPropertyName(_, jsonSerializerSettings, false).ToString()).ToArray();
                                         return $"search.ismatchscoring('{search}', '{string.Join(", ", searchFields)}')";
                                     }
 
                                 case nameof(SearchFns.In):
                                     {
-                                        string variable = PropertyNameUtility.GetPropertyName(methodCallExpression.Arguments[0], false);
+                                        string variable = PropertyNameUtility.GetPropertyName(methodCallExpression.Arguments[0], jsonSerializerSettings, false);
                                         NewArrayExpression valueListNewArrayExpression = methodCallExpression.Arguments[1] as NewArrayExpression;
-                                        IEnumerable<object> valueList = valueListNewArrayExpression.Expressions.Select(_ => _.GetValue()).ToArray();
+                                        IEnumerable<object> valueList = valueListNewArrayExpression.Expressions.Select(_ => _.GetValue(jsonSerializerSettings)).ToArray();
                                         return $"search.in('{variable}', '{string.Join(", ", valueList.Select(_ => _.ToString()).ToArray())}')";
                                     }
 
@@ -126,7 +126,7 @@ namespace AzureSearchQueryBuilder.Helpers
                                                         MemberExpression argumentMemberExpression = argumentExpression as MemberExpression;
                                                         if (argumentMemberExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(MemberExpression)}\r\n\t{methodCallExpression}", nameof(expression));
 
-                                                        parts.Add(PropertyNameUtility.GetPropertyName(argumentMemberExpression, false));
+                                                        parts.Add(PropertyNameUtility.GetPropertyName(argumentMemberExpression, jsonSerializerSettings, false));
                                                     }
 
                                                     break;
@@ -139,7 +139,7 @@ namespace AzureSearchQueryBuilder.Helpers
                                                         ParameterExpression argumentParameterExpression = argumentLambdaExpression.Parameters.SingleOrDefault() as ParameterExpression;
                                                         if (argumentParameterExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}].{nameof(LambdaExpression.Parameters)}[0] to be of type {nameof(ParameterExpression)}\r\n\t{argumentLambdaExpression}", nameof(expression));
 
-                                                        string inner = GetFilterExpression(argumentLambdaExpression);
+                                                        string inner = GetFilterExpression(argumentLambdaExpression, jsonSerializerSettings);
                                                         parts.Add(Constants.ODataMemberAccessOperator);
                                                         parts.Add(methodCallExpression.Method.Name.ToLowerInvariant());
                                                         parts.Add($"({argumentParameterExpression.Name}:{argumentParameterExpression.Name}");
@@ -177,7 +177,7 @@ namespace AzureSearchQueryBuilder.Helpers
                                                         MemberExpression argumentMemberExpression = argumentExpression as MemberExpression;
                                                         if (argumentMemberExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}] to be of type {nameof(MemberExpression)}\r\n\t{expression}", nameof(expression));
 
-                                                        parts.Add(PropertyNameUtility.GetPropertyName(argumentMemberExpression, false));
+                                                        parts.Add(PropertyNameUtility.GetPropertyName(argumentMemberExpression, jsonSerializerSettings, false));
                                                     }
 
                                                     break;
@@ -190,7 +190,7 @@ namespace AzureSearchQueryBuilder.Helpers
                                                         ParameterExpression argumentParameterExpression = argumentLambdaExpression.Parameters.SingleOrDefault() as ParameterExpression;
                                                         if (argumentParameterExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}].{nameof(LambdaExpression.Parameters)}[0] to be of type {nameof(ParameterExpression)}\r\n\t{argumentLambdaExpression}", nameof(expression));
 
-                                                        string inner = GetFilterExpression(argumentLambdaExpression);
+                                                        string inner = GetFilterExpression(argumentLambdaExpression, jsonSerializerSettings);
                                                         parts.Add(Constants.ODataMemberAccessOperator);
                                                         parts.Add(inner);
                                                     }
@@ -222,11 +222,11 @@ namespace AzureSearchQueryBuilder.Helpers
 
                                                         if (idx == 0)
                                                         {
-                                                            format = unaryExpression.GetValue()?.ToString();
+                                                            format = unaryExpression.GetValue(jsonSerializerSettings)?.ToString();
                                                         }
                                                         else
                                                         {
-                                                            parts.Add(unaryExpression.GetValue());
+                                                            parts.Add(unaryExpression.GetValue(jsonSerializerSettings));
                                                         }
                                                     }
 
@@ -256,11 +256,11 @@ namespace AzureSearchQueryBuilder.Helpers
 
                                                         if (idx == 0)
                                                         {
-                                                            format = PropertyNameUtility.GetPropertyName(argumentMemberExpression, false);
+                                                            format = PropertyNameUtility.GetPropertyName(argumentMemberExpression, jsonSerializerSettings, false);
                                                         }
                                                         else
                                                         {
-                                                            parts.Add(PropertyNameUtility.GetPropertyName(argumentMemberExpression, false));
+                                                            parts.Add(PropertyNameUtility.GetPropertyName(argumentMemberExpression, jsonSerializerSettings, false));
                                                         }
                                                     }
 
@@ -274,7 +274,7 @@ namespace AzureSearchQueryBuilder.Helpers
                                                         ParameterExpression argumentParameterExpression = argumentLambdaExpression.Parameters.SingleOrDefault() as ParameterExpression;
                                                         if (argumentParameterExpression == null) throw new ArgumentException($"Expected {nameof(expression)}.{nameof(methodCallExpression.Arguments)}[{idx}].{nameof(LambdaExpression.Parameters)}[0] to be of type {nameof(ParameterExpression)}\r\n\t{argumentLambdaExpression}", nameof(expression));
 
-                                                        string inner = GetFilterExpression(argumentLambdaExpression);
+                                                        string inner = GetFilterExpression(argumentLambdaExpression, jsonSerializerSettings);
                                                         if (idx == 0)
                                                         {
                                                             format = inner;
@@ -313,7 +313,7 @@ namespace AzureSearchQueryBuilder.Helpers
                             ? "and"
                             : "or";
 
-                        return $"({GetFilterExpression(binaryExpression.Left)}) {op} ({GetFilterExpression(binaryExpression.Right)})";
+                        return $"({GetFilterExpression(binaryExpression.Left, jsonSerializerSettings)}) {op} ({GetFilterExpression(binaryExpression.Right, jsonSerializerSettings)})";
                     }
 
                 case ExpressionType.Constant:
@@ -334,7 +334,7 @@ namespace AzureSearchQueryBuilder.Helpers
         /// </summary>
         /// <param name="binaryExpression">The expression from which to parse the OData filter.</param>
         /// <returns>the OData filter.</returns>
-        public static string GetFilterExpression(BinaryExpression binaryExpression)
+        public static string GetFilterExpression(BinaryExpression binaryExpression, JsonSerializerSettings jsonSerializerSettings)
         {
             if (binaryExpression == null || binaryExpression.Left == null || binaryExpression.Right == null) throw new ArgumentNullException(nameof(binaryExpression));
 
@@ -377,7 +377,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         MethodCallExpression methodCallExpression = binaryExpression.Left as MethodCallExpression;
                         if (methodCallExpression == null) throw new ArgumentException($"Expected {nameof(binaryExpression)}.{nameof(BinaryExpression.Left)} to be of type {nameof(MethodCallExpression)}\r\n\t{binaryExpression}", nameof(binaryExpression));
 
-                        left = PropertyNameUtility.GetPropertyName(methodCallExpression, false);
+                        left = PropertyNameUtility.GetPropertyName(methodCallExpression, jsonSerializerSettings, false);
                     }
 
                     break;
@@ -387,7 +387,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         MemberExpression memberExpression = binaryExpression.Left as MemberExpression;
                         if (memberExpression == null) throw new ArgumentException($"Expected {nameof(binaryExpression)}.{nameof(BinaryExpression.Left)} to be of type {nameof(MemberExpression)}\r\n\t{binaryExpression}", nameof(binaryExpression));
 
-                        left = PropertyNameUtility.GetPropertyName(memberExpression, false);
+                        left = PropertyNameUtility.GetPropertyName(memberExpression, jsonSerializerSettings, false);
                     }
 
                     break;
@@ -408,7 +408,7 @@ namespace AzureSearchQueryBuilder.Helpers
                                     MemberExpression memberExpression = unaryExpression.Operand as MemberExpression;
                                     if (unaryExpression == null) throw new ArgumentException($"Expected {nameof(binaryExpression)}.{nameof(BinaryExpression.Left)}.{nameof(UnaryExpression.Operand)} to be of type {nameof(MemberExpression)}\r\n\t{binaryExpression}", nameof(binaryExpression));
 
-                                    left = PropertyNameUtility.GetPropertyName(memberExpression, false);
+                                    left = PropertyNameUtility.GetPropertyName(memberExpression, jsonSerializerSettings, false);
                                 }
 
                                 break;
@@ -424,7 +424,7 @@ namespace AzureSearchQueryBuilder.Helpers
                     throw new ArgumentException($"Invalid expression type {binaryExpression.Left.NodeType}\r\n\t{binaryExpression}", nameof(binaryExpression));
             }
 
-            object rightValue = binaryExpression.Right.GetValue();
+            object rightValue = binaryExpression.Right.GetValue(jsonSerializerSettings);
 
             if (rightValue == null) throw new ArgumentException($"Invalid expression body type {binaryExpression.Right.GetType()}", nameof(binaryExpression));
 
@@ -468,7 +468,7 @@ namespace AzureSearchQueryBuilder.Helpers
         /// </summary>
         /// <param name="unaryExpression">The expression from which to parse the OData filter.</param>
         /// <returns>the OData filter.</returns>
-        public static string GetFilterExpression(UnaryExpression unaryExpression)
+        public static string GetFilterExpression(UnaryExpression unaryExpression, JsonSerializerSettings jsonSerializerSettings)
         {
             if (unaryExpression == null) throw new ArgumentNullException(nameof(unaryExpression));
 
@@ -480,7 +480,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         MemberExpression memberExpression = unaryExpression.Operand as MemberExpression;
                         if (memberExpression == null) throw new ArgumentException($"Expected {nameof(unaryExpression)}.{nameof(UnaryExpression.Operand)} to be of type {nameof(MemberExpression)}\r\n\t{unaryExpression}", nameof(unaryExpression));
 
-                        operand = PropertyNameUtility.GetPropertyName(memberExpression, false);
+                        operand = PropertyNameUtility.GetPropertyName(memberExpression, jsonSerializerSettings, false);
                     }
 
                     break;

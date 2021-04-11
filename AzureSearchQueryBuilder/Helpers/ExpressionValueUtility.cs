@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using AzureSearchQueryBuilder.Builders;
-using Microsoft.Azure.Search.Models;
+using Newtonsoft.Json;
 
 namespace AzureSearchQueryBuilder.Helpers
 {
@@ -18,7 +18,7 @@ namespace AzureSearchQueryBuilder.Helpers
         /// </summary>
         /// <param name="expression">The expression to be evaluated.</param>
         /// <returns>the value.</returns>
-        public static object GetValue(this Expression expression)
+        public static object GetValue(this Expression expression, JsonSerializerSettings jsonSerializerSettings)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
@@ -37,7 +37,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         MethodCallExpression methodCallExpression = expression as MethodCallExpression;
                         if (methodCallExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(MethodCallExpression)}\r\n\t{expression}", nameof(expression));
 
-                        return methodCallExpression.GetValue();
+                        return methodCallExpression.GetValue(jsonSerializerSettings);
                     }
 
                 case ExpressionType.Convert:
@@ -45,7 +45,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         UnaryExpression unaryExpression = expression as UnaryExpression;
                         if (unaryExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(UnaryExpression)}\r\n\t{expression}", nameof(expression));
 
-                        return unaryExpression.GetValue();
+                        return unaryExpression.GetValue(jsonSerializerSettings);
                     }
 
                 case ExpressionType.MemberAccess:
@@ -53,7 +53,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         MemberExpression memberExpression = expression as MemberExpression;
                         if (memberExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(MemberExpression)}\r\n\t{expression}", nameof(expression));
 
-                        return memberExpression.GetValue();
+                        return memberExpression.GetValue(jsonSerializerSettings);
                     }
 
                 case ExpressionType.New:
@@ -61,7 +61,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         NewExpression newExpression = expression as NewExpression;
                         if (newExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(NewExpression)}\r\n\t{expression}", nameof(expression));
 
-                        return newExpression.GetValue();
+                        return newExpression.GetValue(jsonSerializerSettings);
                     }
 
                 case ExpressionType.Not:
@@ -69,7 +69,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         UnaryExpression unaryExpression = expression as UnaryExpression;
                         if (unaryExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(UnaryExpression)}\r\n\t{expression}", nameof(expression));
 
-                        object unaryValue = unaryExpression.GetValue();
+                        object unaryValue = unaryExpression.GetValue(jsonSerializerSettings);
                         if (unaryValue == null ||
                             (unaryValue.GetType() != typeof(bool) && unaryValue.GetType() != typeof(bool?)))
                         {
@@ -93,7 +93,7 @@ namespace AzureSearchQueryBuilder.Helpers
                         NewArrayExpression newArrayExpression = expression as NewArrayExpression;
                         if (newArrayExpression == null) throw new ArgumentException($"Expected {nameof(expression)} to be of type {nameof(NewArrayExpression)}\r\n\t{expression}", nameof(expression));
 
-                        return newArrayExpression.Expressions.Select(_ => _.GetValue()).ToArray();
+                        return newArrayExpression.Expressions.Select(_ => _.GetValue(jsonSerializerSettings)).ToArray();
                     }
 
                 default:
@@ -118,10 +118,10 @@ namespace AzureSearchQueryBuilder.Helpers
         /// </summary>
         /// <param name="expression">The expression to be evaluated.</param>
         /// <returns>the value.</returns>
-        public static object GetValue(this MemberExpression expression)
+        public static object GetValue(this MemberExpression expression, JsonSerializerSettings jsonSerializerSettings)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            object memberValue = expression.Expression.GetValue();
+            object memberValue = expression.Expression.GetValue(jsonSerializerSettings);
 
             if (memberValue == null) return null;
             if (expression.Type == memberValue.GetType()) return memberValue;
@@ -134,7 +134,7 @@ namespace AzureSearchQueryBuilder.Helpers
         /// </summary>
         /// <param name="expression">The expression to be evaluated.</param>
         /// <returns>the value.</returns>
-        public static object GetValue(this MethodCallExpression expression)
+        public static object GetValue(this MethodCallExpression expression, JsonSerializerSettings jsonSerializerSettings)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
@@ -144,25 +144,25 @@ namespace AzureSearchQueryBuilder.Helpers
                 {
                     case nameof(SearchFns.IsMatch):
                         {
-                            string search = expression.Arguments[0].GetValue() as string;
+                            string search = expression.Arguments[0].GetValue(jsonSerializerSettings) as string;
                             NewArrayExpression searchFieldsNewArrayExpression = expression.Arguments[1] as NewArrayExpression;
-                            IEnumerable<string> searchFields = searchFieldsNewArrayExpression.Expressions.Select(_ => PropertyNameUtility.GetPropertyName(_, false).ToString()).ToArray();
+                            IEnumerable<string> searchFields = searchFieldsNewArrayExpression.Expressions.Select(_ => PropertyNameUtility.GetPropertyName(_, jsonSerializerSettings, false).ToString()).ToArray();
                             return $"search.ismatch('{search}', '{string.Join(", ", searchFields)}')";
                         }
 
                     case nameof(SearchFns.IsMatchScoring):
                         {
-                            string search = expression.Arguments[0].GetValue() as string;
+                            string search = expression.Arguments[0].GetValue(jsonSerializerSettings) as string;
                             NewArrayExpression searchFieldsNewArrayExpression = expression.Arguments[1] as NewArrayExpression;
-                            IEnumerable<string> searchFields = searchFieldsNewArrayExpression.Expressions.Select(_ => PropertyNameUtility.GetPropertyName(_, false).ToString()).ToArray();
+                            IEnumerable<string> searchFields = searchFieldsNewArrayExpression.Expressions.Select(_ => PropertyNameUtility.GetPropertyName(_, jsonSerializerSettings, false).ToString()).ToArray();
                             return $"search.ismatchscoring('{search}', '{string.Join(", ", searchFields)}')";
                         }
 
                     case nameof(SearchFns.In):
                         {
-                            string variable = PropertyNameUtility.GetPropertyName(expression.Arguments[0], false);
+                            string variable = PropertyNameUtility.GetPropertyName(expression.Arguments[0], jsonSerializerSettings, false);
                             NewArrayExpression valueListNewArrayExpression = expression.Arguments[1] as NewArrayExpression;
-                            IEnumerable<object> valueList = valueListNewArrayExpression.Expressions.Select(_ => _.GetValue()).ToArray();
+                            IEnumerable<object> valueList = valueListNewArrayExpression.Expressions.Select(_ => _.GetValue(jsonSerializerSettings)).ToArray();
                             return $"search.in('{variable}', '{string.Join(", ", valueList.Select(_ => _.ToString()).ToArray())}')";
                         }
 
@@ -176,8 +176,8 @@ namespace AzureSearchQueryBuilder.Helpers
             else
             {
                 return expression.Method.Invoke(
-                    expression.Object.GetValue(),
-                    expression.Arguments.Select(_ => _.GetValue()).ToArray());
+                    expression.Object.GetValue(jsonSerializerSettings),
+                    expression.Arguments.Select(_ => _.GetValue(jsonSerializerSettings)).ToArray());
             }
         }
 
@@ -186,11 +186,11 @@ namespace AzureSearchQueryBuilder.Helpers
         /// </summary>
         /// <param name="expression">The expression to be evaluated.</param>
         /// <returns>the value.</returns>
-        public static object GetValue(this NewExpression expression)
+        public static object GetValue(this NewExpression expression, JsonSerializerSettings jsonSerializerSettings)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
-            return Activator.CreateInstance(expression.Type, expression.Arguments.Select(a => a.GetValue()).ToArray());
+            return Activator.CreateInstance(expression.Type, expression.Arguments.Select(a => a.GetValue(jsonSerializerSettings)).ToArray());
         }
 
         /// <summary>
@@ -198,11 +198,11 @@ namespace AzureSearchQueryBuilder.Helpers
         /// </summary>
         /// <param name="expression">The expression to be evaluated.</param>
         /// <returns>the value.</returns>
-        public static object GetValue(this UnaryExpression expression)
+        public static object GetValue(this UnaryExpression expression, JsonSerializerSettings jsonSerializerSettings)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
-            return expression.Operand.GetValue();
+            return expression.Operand.GetValue(jsonSerializerSettings);
         }
 
         /// <summary>

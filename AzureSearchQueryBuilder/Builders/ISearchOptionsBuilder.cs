@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq.Expressions;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Models;
 
 namespace AzureSearchQueryBuilder.Builders
 {
     /// <summary>
-    /// An interface representing a <see cref="SearchParameters"/> builder.
+    /// An interface representing a <see cref="SearchOptions"/> builder.
     /// </summary>
     /// <typeparam name="TModel">The type of the model representing the search index documents.</typeparam>
-    public interface ISearchParametersBuilder<TModel> : IOrderlessSearchParametersBuilder<TModel>
+    public interface ISearchOptionsBuilder<TModel> : IOrderlessSearchOptionsBuilder<TModel>
     {
         /// <summary>
         /// Get the collection of fields to facet by.
@@ -23,7 +23,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// <summary>
         /// Gets the value indicating whether to fetch the total count of results.
         /// </summary>
-        bool IncludeTotalResultCount { get; }
+        bool IncludeTotalCount { get; }
 
         /// <summary>
         /// Gets a value indicating the query type.
@@ -33,12 +33,12 @@ namespace AzureSearchQueryBuilder.Builders
         ///                                    Queries are evaluated across all searchable fields (or fields indicated in searchFields) in each document by default.
         /// * <see cref="QueryType.Full"/> - Search text is interpreted using the Lucene query language which allows field-specific and weighted searches.
         /// </remarks>
-        QueryType QueryType { get; }
+        SearchQueryType QueryType { get; }
 
         /// <summary>
         /// Gets a value indicating the values for each parameter defined in a scoring function.
         /// </summary>
-        IEnumerable<ScoringParameter> ScoringParameters { get; }
+        IEnumerable<string> ScoringParameters { get; }
 
         /// <summary>
         /// Gets the name of a scoring profile to evaluate match scores for matching documents in order to sort the results.
@@ -97,7 +97,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// <summary>
         /// Gets the number of items to retrieve.
         /// </summary>
-        int? Top { get; }
+        int? Size { get; }
 
         /// <summary>
         /// Adds a proprty to the collection of fields to facet by.
@@ -105,7 +105,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property being selected.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property.</param>
         /// <returns>the updated builder.</returns>
-        ISearchParametersBuilder<TModel> WithFacet<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
+        ISearchOptionsBuilder<TModel> WithFacet<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
 
         /// <summary>
         /// Adds a property to the collection of field names used for hit highlights.
@@ -113,42 +113,42 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property being selected.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property.</param>
         /// <returns>the updated builder.</returns>
-        ISearchParametersBuilder<TModel> WithHighlightField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
+        ISearchOptionsBuilder<TModel> WithHighlightField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
 
         /// <summary>
         /// Sets the value indicating whether to fetch the total count of results.
         /// </summary>
         /// <param name="includeTotalResultCount">The desired include total results count value.</param>
         /// <returns>the updated builder.</returns>
-        ISearchParametersBuilder<TModel> WithIncludeTotalResultCount(bool includeTotalResultCount);
+        ISearchOptionsBuilder<TModel> WithIncludeTotalCount(bool includeTotalCount);
 
         /// <summary>
         /// Sets a value indicating the query type.
         /// </summary>
         /// <param name="queryType">The desired query type.</param>
         /// <returns>the updated builder.</returns>
-        ISearchParametersBuilder<TModel> WithQueryType(QueryType queryType);
+        ISearchOptionsBuilder<TModel> WithQueryType(SearchQueryType queryType);
 
         /// <summary>
         /// Sets a value indicating the values for each parameter defined in a scoring function.
         /// </summary>
         /// <param name="scoringParameter">The desired additional scoring parameter.</param>
         /// <returns>the updated builder.</returns>
-        ISearchParametersBuilder<TModel> WithScoringParameter(ScoringParameter scoringParameter);
+        ISearchOptionsBuilder<TModel> WithScoringParameter(string scoringParameter);
 
         /// <summary>
         /// Sets the name of a scoring profile to evaluate match scores for matching documents in order to sort the results.
         /// </summary>
         /// <param name="scoringProfile">The desired scoring profile name.</param>
         /// <returns>the updated builder.</returns>
-        ISearchParametersBuilder<TModel> WithScoringProfile(string scoringProfile);
+        ISearchOptionsBuilder<TModel> WithScoringProfile(string scoringProfile);
 
         /// <summary>
         /// Sets a value indicating whether any or all of the search terms must be matched in order to count the document as a match.
         /// </summary>
         /// <param name="searchMode">The desired search mode.</param>
         /// <returns>the updated builder.</returns>
-        ISearchParametersBuilder<TModel> WithSearchMode(SearchMode searchMode);
+        ISearchOptionsBuilder<TModel> WithSearchMode(SearchMode searchMode);
 
         /// <summary>
         /// Adds a property to the collection of fields to include in the result set.
@@ -156,14 +156,14 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property being selected.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property.</param>
         /// <returns>the updated builder.</returns>
-        ISearchParametersBuilder<TModel> WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
+        ISearchOptionsBuilder<TModel> WithSelect<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
 
         /// <summary>
         /// Sets the number of search results to skip. 
         /// </summary>
         /// <param name="skip">The desired skip value.</param>
         /// <returns>the updated builder.</returns>
-        ISearchParametersBuilder<TModel> WithSkip(int? skip);
+        ISearchOptionsBuilder<TModel> WithSkip(int? skip);
 
         /// <summary>
         /// Uses an expression for sorting the elements of a sequence in ascending order using a specified comparer.
@@ -171,7 +171,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property to be ordered by.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property from each element.</param>
         /// <returns>the updated builder.</returns>
-        IOrderedSearchParametersBuilder<TModel> WithOrderBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
+        IOrderedSearchOptionsBuilder<TModel> WithOrderBy<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
 
         /// <summary>
         /// Uses an expression for sorting the elements of a sequence in descending order using a specified comparer.
@@ -179,35 +179,35 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty">The type of the property to be ordered by.</typeparam>
         /// <param name="lambdaExpression">An expression to extract a property from each element.</param>
         /// <returns>the updated builder.</returns>
-        IOrderedSearchParametersBuilder<TModel> WithOrderByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
+        IOrderedSearchOptionsBuilder<TModel> WithOrderByDescending<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
 
         /// <summary>
         /// Adds a where clause to the filter expression.
         /// </summary>
         /// <param name="lambdaExpression">The lambda expression used to generate a filter expression.</param>
         /// <returns>the updated builder.</returns>
-        ISearchParametersBuilder<TModel> Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression);
+        ISearchOptionsBuilder<TModel> Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression);
 
         /// <summary>
         /// Sets the string tag that appends to search hits.
         /// </summary>
         /// <param name="highlightPostTag">the desired tag.</param>
         /// <returns>the updated builder.</returns>
-        ISearchParametersBuilder<TModel> WithHighlightPostTag(string highlightPostTag);
+        ISearchOptionsBuilder<TModel> WithHighlightPostTag(string highlightPostTag);
 
         /// <summary>
         /// Sets the string tag that prepends to search hits.
         /// </summary>
         /// <param name="highlightPreTag">the desired tag.</param>
         /// <returns>the updated builder.</returns>
-        ISearchParametersBuilder<TModel> WithHighlightPreTag(string highlightPreTag);
+        ISearchOptionsBuilder<TModel> WithHighlightPreTag(string highlightPreTag);
 
         /// <summary>
         /// sets a number between 0 and 100 indicating the percentage of the index that must be covered by a query in order for the query to be reported as a success. 
         /// </summary>
         /// <param name="minimumCoverage">The desired minimum coverage.</param>
         /// <returns>the updated builder.</returns>
-        ISearchParametersBuilder<TModel> WithMinimumCoverage(double? minimumCoverage);
+        ISearchOptionsBuilder<TModel> WithMinimumCoverage(double? minimumCoverage);
 
         /// <summary>
         /// Appends to the list of field names to search for the specified search text.
@@ -215,13 +215,13 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty"></typeparam>
         /// <param name="lambdaExpression">The lambda expression representing the search field.</param>
         /// <returns>the updated builder.</returns>
-        ISearchParametersBuilder<TModel> WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
+        ISearchOptionsBuilder<TModel> WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression);
 
         /// <summary>
         /// Sets the number of items to retrieve. 
         /// </summary>
         /// <param name="top">The desired top value.</param>
         /// <returns>the updated builder.</returns>
-        ISearchParametersBuilder<TModel> WithTop(int? top);
+        ISearchOptionsBuilder<TModel> WithSize(int? size);
     }
 }

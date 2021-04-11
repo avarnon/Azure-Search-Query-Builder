@@ -3,19 +3,29 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using AzureSearchQueryBuilder.Helpers;
+using Newtonsoft.Json;
 
 [assembly: InternalsVisibleTo("AzureSearchQueryBuilder.Tests")]
 
 namespace AzureSearchQueryBuilder.Builders
 {
     /// <summary>
-    /// The <see cref="ParametersBuilder"/>`2[<typeparamref name="TModel"/>, <typeparamref name="TParameters"/>] builder.
+    /// The <see cref="OptionsBuilder"/>`2[<typeparamref name="TModel"/>, <typeparamref name="TOptions"/>] builder.
     /// </summary>
     /// <typeparam name="TModel">The type of the model representing the search index documents.</typeparam>
-    /// <typeparam name="TParameters">The type of the parameters object to be built.</typeparam>
-    public abstract class ParametersBuilder<TModel, TParameters> : IParametersBuilder<TModel, TParameters>
+    /// <typeparam name="TOptions">The type of the Options object to be built.</typeparam>
+    public abstract class OptionsBuilder<TModel, TOptions> : IOptionsBuilder<TModel, TOptions>
     {
         private IList<string> _searchFields;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="jsonSerializerSettings">The JSON Serialzer Settings</param>
+        protected OptionsBuilder(JsonSerializerSettings jsonSerializerSettings)
+        {
+            this.JsonSerializerSettings = jsonSerializerSettings;
+        }
 
         /// <summary>
         /// Gets the expression that filters the documents considered for producing the completed term suggestions.
@@ -45,24 +55,29 @@ namespace AzureSearchQueryBuilder.Builders
         /// <summary>
         /// Gets the number of items to retrieve.
         /// </summary>
-        public int? Top { get; private set; }
+        public int? Size { get; private set; }
 
         /// <summary>
-        /// Build a <typeparamref name="TParameters"/> object.
+        /// The JSON Serializer settings.
         /// </summary>
-        /// <returns>the <typeparamref name="TParameters"/> object.</returns>
-        public abstract TParameters Build();
+        protected JsonSerializerSettings JsonSerializerSettings { get; }
+
+        /// <summary>
+        /// Build a <typeparamref name="TOptions"/> object.
+        /// </summary>
+        /// <returns>the <typeparamref name="TOptions"/> object.</returns>
+        public abstract TOptions Build();
 
         /// <summary>
         /// Adds a where clause to the filter expression.
         /// </summary>
         /// <param name="lambdaExpression">The lambda expression used to generate a filter expression.</param>
         /// <returns>the updated builder.</returns>
-        public IParametersBuilder<TModel, TParameters> Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
+        public IOptionsBuilder<TModel, TOptions> Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
-            string newFilter = FilterExpressionUtility.GetFilterExpression(lambdaExpression);
+            string newFilter = FilterExpressionUtility.GetFilterExpression(lambdaExpression, this.JsonSerializerSettings);
             if (string.IsNullOrWhiteSpace(this.Filter))
             {
                 this.Filter = newFilter;
@@ -80,7 +95,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// </summary>
         /// <param name="highlightPostTag">the desired tag.</param>
         /// <returns>the updated builder.</returns>
-        public IParametersBuilder<TModel, TParameters> WithHighlightPostTag(string highlightPostTag)
+        public IOptionsBuilder<TModel, TOptions> WithHighlightPostTag(string highlightPostTag)
         {
             this.HighlightPostTag = highlightPostTag;
             return this;
@@ -91,7 +106,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// </summary>
         /// <param name="highlightPreTag">the desired tag.</param>
         /// <returns>the updated builder.</returns>
-        public IParametersBuilder<TModel, TParameters> WithHighlightPreTag(string highlightPreTag)
+        public IOptionsBuilder<TModel, TOptions> WithHighlightPreTag(string highlightPreTag)
         {
             this.HighlightPreTag = highlightPreTag;
             return this;
@@ -102,7 +117,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// </summary>
         /// <param name="minimumCoverage">The desired minimum coverage.</param>
         /// <returns>the updated builder.</returns>
-        public IParametersBuilder<TModel, TParameters> WithMinimumCoverage(double? minimumCoverage)
+        public IOptionsBuilder<TModel, TOptions> WithMinimumCoverage(double? minimumCoverage)
         {
             if (minimumCoverage < 0 || minimumCoverage > 100) throw new ArgumentOutOfRangeException(nameof(minimumCoverage), minimumCoverage, $"{nameof(minimumCoverage)} must be between 0 and 100");
 
@@ -116,7 +131,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// <typeparam name="TProperty"></typeparam>
         /// <param name="lambdaExpression">The lambda expression representing the search field.</param>
         /// <returns>the updated builder.</returns>
-        public IParametersBuilder<TModel, TParameters> WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        public IOptionsBuilder<TModel, TOptions> WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             if (lambdaExpression == null) throw new ArgumentNullException(nameof(lambdaExpression));
 
@@ -125,7 +140,7 @@ namespace AzureSearchQueryBuilder.Builders
                 this._searchFields = new List<string>();
             }
 
-            string field = PropertyNameUtility.GetPropertyName(lambdaExpression, false);
+            string field = PropertyNameUtility.GetPropertyName(lambdaExpression, this.JsonSerializerSettings, false);
             this._searchFields.Add(field);
 
             return this;
@@ -136,9 +151,9 @@ namespace AzureSearchQueryBuilder.Builders
         /// </summary>
         /// <param name="top">The desired top value.</param>
         /// <returns>the updated builder.</returns>
-        public IParametersBuilder<TModel, TParameters> WithTop(int? top)
+        public IOptionsBuilder<TModel, TOptions> WithSize(int? size)
         {
-            this.Top = top;
+            this.Size = size;
             return this;
         }
     }

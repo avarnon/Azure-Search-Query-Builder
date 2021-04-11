@@ -1,19 +1,21 @@
-﻿using System.Linq;
+﻿using Azure.Search.Documents;
+using Azure.Search.Documents.Models;
+using Newtonsoft.Json;
 using System.Linq.Expressions;
-using Microsoft.Azure.Search.Models;
 
 namespace AzureSearchQueryBuilder.Builders
 {
     /// <summary>
-    /// The <see cref="AutocompleteParameters"/>`1[<typeparamref name="TModel"/>] builder.
+    /// The <see cref="AutocompleteOptions"/>`1[<typeparamref name="TModel"/>] builder.
     /// </summary>
     /// <typeparam name="TModel">The type of the model representing the search index documents.</typeparam>
-    public class AutocompleteParametersBuilder<TModel> : ParametersBuilder<TModel, AutocompleteParameters>, IAutocompleteParametersBuilder<TModel>
+    public class AutocompleteOptionsBuilder<TModel> : OptionsBuilder<TModel, AutocompleteOptions>, IAutocompleteOptionsBuilder<TModel>
     {
         /// <summary>
         /// Constructor.
         /// </summary>
-        private AutocompleteParametersBuilder()
+        private AutocompleteOptionsBuilder(JsonSerializerSettings jsonSerializerSettings)
+            : base(jsonSerializerSettings)
         {
         }
 
@@ -25,7 +27,7 @@ namespace AzureSearchQueryBuilder.Builders
         /// * <see cref="AutocompleteMode.TwoTerms"/> - Matching two-term phrases in the index will be suggested.
         /// * <see cref="AutocompleteMode.OneTermWithContext"/> - Completes the last term in a query with two or more terms, where the last two terms are a phrase that exists in the index.
         /// </remarks>
-        public AutocompleteMode AutocompleteMode { get; private set; }
+        public AutocompleteMode Mode { get; private set; }
 
         /// <summary>
         /// Gets the value indicating that suggestions should be found even if there is a substituted or missing character in the search text.
@@ -33,28 +35,37 @@ namespace AzureSearchQueryBuilder.Builders
         public bool? UseFuzzyMatching { get; private set; }
 
         /// <summary>
-        /// Create a new <see cref="IAutocompleteParametersBuilder" />`1[<typeparamref name="TModel"/>]"/>.
+        /// Create a new <see cref="IAutocompleteOptionsBuilder" />`1[<typeparamref name="TModel"/>]"/>.
         /// </summary>
-        /// <returns>a new <see cref="IAutocompleteParametersBuilder" />`1[<typeparamref name="TModel"/>]"/>.</returns>
-        public static IAutocompleteParametersBuilder<TModel> Create() => new AutocompleteParametersBuilder<TModel>();
+        /// <returns>a new <see cref="IAutocompleteOptionsBuilder" />`1[<typeparamref name="TModel"/>]"/>.</returns>
+        public static IAutocompleteOptionsBuilder<TModel> Create(JsonSerializerSettings jsonSerializerSettings) => new AutocompleteOptionsBuilder<TModel>(jsonSerializerSettings);
 
         /// <summary>
-        /// Build a <see cref="AutocompleteParameters"/> object.
+        /// Build a <see cref="AutocompleteOptions"/> object.
         /// </summary>
-        /// <returns>the <see cref="AutocompleteParameters"/> object.</returns>
-        public override AutocompleteParameters Build()
+        /// <returns>the <see cref="AutocompleteOptions"/> object.</returns>
+        public override AutocompleteOptions Build()
         {
-            return new AutocompleteParameters()
+            AutocompleteOptions autocompleteOptions = new AutocompleteOptions()
             {
-                AutocompleteMode = this.AutocompleteMode,
+                Mode = this.Mode,
                 Filter = this.Filter,
                 HighlightPostTag = this.HighlightPostTag,
                 HighlightPreTag = this.HighlightPreTag,
                 MinimumCoverage = this.MinimumCoverage,
-                SearchFields = this.SearchFields?.ToList(),
-                Top = this.Top,
+                Size = this.Size,
                 UseFuzzyMatching = this.UseFuzzyMatching,
             };
+
+            if (this.SearchFields != null)
+            {
+                foreach (string searchField in this.SearchFields)
+                {
+                    autocompleteOptions.SearchFields.Add(searchField);
+                }
+            }
+
+            return autocompleteOptions;
         }
 
         /// <summary>
@@ -62,9 +73,9 @@ namespace AzureSearchQueryBuilder.Builders
         /// </summary>
         /// <param name="autocompleteMode">The desired autocomplete mode.</param>
         /// <returns>the updated builder.</returns>
-        public IAutocompleteParametersBuilder<TModel> WithAutocompleteMode(AutocompleteMode autocompleteMode)
+        public IAutocompleteOptionsBuilder<TModel> WithMode(AutocompleteMode autocompleteMode)
         {
-            this.AutocompleteMode = autocompleteMode;
+            this.Mode = autocompleteMode;
             return this;
         }
 
@@ -73,47 +84,47 @@ namespace AzureSearchQueryBuilder.Builders
         /// </summary>
         /// <param name="useFuzzyMatching">The desired fuzzy matching mode.</param>
         /// <returns>the updated builder.</returns>
-        public IAutocompleteParametersBuilder<TModel> WithUseFuzzyMatching(bool? useFuzzyMatching)
+        public IAutocompleteOptionsBuilder<TModel> WithUseFuzzyMatching(bool? useFuzzyMatching)
         {
             this.UseFuzzyMatching = useFuzzyMatching;
             return this;
         }
 
-        #region IAutocompleteParametersBuilder Explicit Implimentation
+        #region IAutocompleteOptionsBuilder Explicit Implimentation
 
-        IAutocompleteParametersBuilder<TModel> IAutocompleteParametersBuilder<TModel>.Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
+        IAutocompleteOptionsBuilder<TModel> IAutocompleteOptionsBuilder<TModel>.Where(Expression<BooleanLambdaDelegate<TModel>> lambdaExpression)
         {
             this.Where(lambdaExpression);
             return this;
         }
 
-        IAutocompleteParametersBuilder<TModel> IAutocompleteParametersBuilder<TModel>.WithHighlightPostTag(string highlightPostTag)
+        IAutocompleteOptionsBuilder<TModel> IAutocompleteOptionsBuilder<TModel>.WithHighlightPostTag(string highlightPostTag)
         {
             this.WithHighlightPostTag(highlightPostTag);
             return this;
         }
 
-        IAutocompleteParametersBuilder<TModel> IAutocompleteParametersBuilder<TModel>.WithHighlightPreTag(string highlightPreTag)
+        IAutocompleteOptionsBuilder<TModel> IAutocompleteOptionsBuilder<TModel>.WithHighlightPreTag(string highlightPreTag)
         {
             this.WithHighlightPreTag(highlightPreTag);
             return this;
         }
 
-        IAutocompleteParametersBuilder<TModel> IAutocompleteParametersBuilder<TModel>.WithMinimumCoverage(double? minimumCoverage)
+        IAutocompleteOptionsBuilder<TModel> IAutocompleteOptionsBuilder<TModel>.WithMinimumCoverage(double? minimumCoverage)
         {
             this.WithMinimumCoverage(minimumCoverage);
             return this;
         }
 
-        IAutocompleteParametersBuilder<TModel> IAutocompleteParametersBuilder<TModel>.WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
+        IAutocompleteOptionsBuilder<TModel> IAutocompleteOptionsBuilder<TModel>.WithSearchField<TProperty>(Expression<PropertyLambdaDelegate<TModel, TProperty>> lambdaExpression)
         {
             this.WithSearchField(lambdaExpression);
             return this;
         }
 
-        IAutocompleteParametersBuilder<TModel> IAutocompleteParametersBuilder<TModel>.WithTop(int? top)
+        IAutocompleteOptionsBuilder<TModel> IAutocompleteOptionsBuilder<TModel>.WithSize(int? size)
         {
-            this.WithTop(top);
+            this.WithSize(size);
             return this;
         }
 
